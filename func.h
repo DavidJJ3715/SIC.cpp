@@ -8,7 +8,7 @@
 #include "../SDL2/include/SDL2/SDL.h"
 #include "../SDL2/include/SDL2/SDL_ttf.h"
 #include "../SDL2/include/SDL2/SDL_image.h"
-#include "classes.h"
+#include "user.h"
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
@@ -99,7 +99,7 @@ bool startScreen(SDL_Renderer* renderer, TTF_Font* startFont, const int frameDel
                 case SDL_KEYDOWN:
                 {
                     if(event.key.keysym.sym == SDLK_SPACE) //Start the game
-                        {stayAtStartScreen = false, running = true;}
+                        {stayAtStartScreen = false, running = true; break;}
                     else if(event.key.keysym.sym == SDLK_s) //Enter the settings menu
                         {continue;}
                 }
@@ -112,6 +112,8 @@ bool startScreen(SDL_Renderer* renderer, TTF_Font* startFont, const int frameDel
             {SDL_Delay(frameDelay - frameTime);}
         SDL_RenderPresent(renderer);
     }
+    SDL_SetRenderDrawColor(renderer,0,0,0,0);
+    SDL_RenderClear(renderer);
     SDL_DestroyTexture(gear);
     return running;
 }
