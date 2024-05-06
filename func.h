@@ -52,20 +52,43 @@ void drawStartText(SDL_Renderer* renderer, bool& increaseAlpha, double& alpha, d
     {
         alpha -= fadeSpeed;
         if(alpha <= 0)
-            {alpha = -400; increaseAlpha = true;}
+            {alpha = -150; increaseAlpha = true;}
     }
-    SDL_DestroyTexture(text);    
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(text);
 }
 
-bool startScreen(SDL_Renderer* renderer, TTF_Font* startFont, TTF_Font* fpsFont, const int frameDelay)
+void drawGears(SDL_Renderer* renderer, TTF_Font* startFont, SDL_Texture* gear)
 {
-    Uint64 frameStart = SDL_GetTicks64();
+        SDL_Rect gearLarge = {0,0,105,105};
+        SDL_Rect gearSmall = {105/2,105/2,65,65};
+        SDL_Rect total = {0,0,200,200};
+        SDL_Rect textRect = {12,100,100,50};
+        SDL_Color textColor = {255,255,255};
+        SDL_Surface* surface = TTF_RenderText_Solid(startFont, "(S)ettings", textColor);
+        SDL_Texture* text = SDL_CreateTextureFromSurface(renderer, surface);
+
+        SDL_SetRenderDrawColor(renderer,0,0,0,0);
+        SDL_RenderFillRect(renderer, &total);
+        SDL_RenderCopy(renderer, gear, nullptr, &gearLarge);
+        SDL_RenderCopy(renderer, gear, nullptr, &gearSmall);
+        SDL_RenderCopy(renderer, text, nullptr, &textRect);
+
+        SDL_FreeSurface(surface);
+        SDL_DestroyTexture(text);
+}
+
+bool startScreen(SDL_Renderer* renderer, TTF_Font* startFont, const int frameDelay)
+{
+    Uint64 frameStart;
     bool stayAtStartScreen = true, increaseAlpha = true, running = false;
     int frameTime;
-    double fadeSpeed = 0.1, alpha = -15;
+    double fadeSpeed = 1, alpha = 1;
+    SDL_Texture* gear = IMG_LoadTexture(renderer, "./spritePNGs/Settings Icon.png");
 
     while(stayAtStartScreen)
     {
+        frameStart = SDL_GetTicks64();
         SDL_Event event;
         while(SDL_PollEvent(&event))
         {
@@ -82,12 +105,14 @@ bool startScreen(SDL_Renderer* renderer, TTF_Font* startFont, TTF_Font* fpsFont,
                 }
             }
         }
+        drawGears(renderer, startFont, gear);
         drawStartText(renderer, increaseAlpha, alpha, fadeSpeed, startFont); 
         frameTime = SDL_GetTicks64() - frameStart;
         if(frameDelay > frameTime)
             {SDL_Delay(frameDelay - frameTime);}
         SDL_RenderPresent(renderer);
     }
+    SDL_DestroyTexture(gear);
     return running;
 }
 
