@@ -2,8 +2,6 @@
 #define _classes_
 #include "func.h"
 
-using intTup = std::tuple<int,int,int>;
-
 class user
 {
     public:

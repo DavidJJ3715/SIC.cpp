@@ -11,6 +11,8 @@
 #include "../SDL2/include/SDL2/SDL_ttf.h"
 #include "../SDL2/include/SDL2/SDL_image.h"
 
+using intTup = std::tuple<int,int,int>;
+
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
@@ -117,6 +119,88 @@ bool startScreen(SDL_Renderer* renderer, TTF_Font* startFont, const int frameDel
     SDL_RenderClear(renderer);
     SDL_DestroyTexture(gear);
     return running;
+}
+
+void drawPause(SDL_Renderer* renderer, TTF_Font* font, bool selection)
+{
+    SDL_SetRenderDrawColor(renderer,255,255,255,0); //Draw white background
+    SDL_RenderClear(renderer);
+
+    int menuWidth = 500, menuHeight = 500; //Bounds of the black box
+    int menuX = (WIDTH - menuWidth)/2, menuY = (HEIGHT - menuHeight)/2; //Starting points of the black box
+    SDL_Rect rect = {menuX, menuY, menuWidth, menuHeight}, border; //Black rectangle rect
+
+    SDL_SetRenderDrawColor(renderer,0,0,0,0); //Choose black color
+    SDL_RenderFillRect(renderer, &rect); //Fill in black rectangle
+
+    SDL_Surface* surface = TTF_RenderText_Solid(font, "GAME PAUSED", {255,255,255,0}); //Game pause text
+    SDL_Texture* pauseText = SDL_CreateTextureFromSurface(renderer, surface); //Make it a texture
+    SDL_FreeSurface(surface); //Free the surface to prevent memory leaks
+    surface = TTF_RenderText_Solid(font, "RESUME", {255,255,255,0}); //Resume text
+    SDL_Texture* resumeText = SDL_CreateTextureFromSurface(renderer, surface); //Make it a texture
+    SDL_FreeSurface(surface); //Free the surface to prevent memory leaks
+    surface = TTF_RenderText_Solid(font, "QUIT", {255,255,255,0}); //Quit text
+    SDL_Texture* quitText = SDL_CreateTextureFromSurface(renderer, surface); //Make it a texture
+    SDL_FreeSurface(surface); //Free the surface to prevent memory leaks
+
+    SDL_Rect pause = {(WIDTH/2)-(menuWidth/5)-50, (HEIGHT/2)-(menuHeight/2)+25, 310, 140}; //Location of "GAME PAUSED"
+    SDL_Rect resume = {(WIDTH/2)-(menuWidth/5)+5, (HEIGHT)-(menuHeight)+150, 200, 100}; //Location of "RESUME"
+    SDL_Rect quit = {(WIDTH/2)-(menuWidth/5)+5, HEIGHT-menuHeight+300, 200, 100}; //Location of "QUIT"
+    SDL_RenderCopy(renderer, pauseText, nullptr, &pause); //Render "GAME PAUSED" to the screen
+    SDL_RenderCopy(renderer, resumeText, nullptr, &resume); //Render "RESUME" to the screen
+    SDL_RenderCopy(renderer, quitText, nullptr, &quit); //Render "QUIT" to the screen
+
+    if(selection) //Change where border is located based on which choice is selected
+        {border = {(WIDTH/2)-145, (HEIGHT/2)-50, 300, 100};} //Resume
+    else
+        {border = {(WIDTH/2)-145, (HEIGHT/2)+100, 300, 100};} //Quit
+
+    SDL_SetRenderDrawColor(renderer,212,175,55,0); //Gold color for border
+    SDL_RenderDrawRect(renderer, &border); //Draw the golden rectangle
+    SDL_RenderPresent(renderer); //Draw everything to the screen
+    SDL_DestroyTexture(pauseText); //Destroy every texture to prevent memory leaks
+    SDL_DestroyTexture(resumeText);
+    SDL_DestroyTexture(quitText);
+}
+
+bool pauseMenu(SDL_Renderer* renderer, TTF_Font* font)
+{
+    bool selection = true; //True == "resume" || False == "quit"
+    drawPause(renderer, font, selection); //Separate function used to draw the pause menu to keep this function cleaner
+    while(true) //Loop until the user resumes or quits the game
+    {
+        SDL_Event event;
+        while(SDL_PollEvent(&event)) //Typical event handler loop
+        {
+            switch(event.type)
+            {
+                case SDL_QUIT:
+                    {return selection;}
+                case SDL_KEYDOWN:
+                {
+                    switch(event.key.keysym.sym)
+                    {
+                        case SDLK_ESCAPE:
+                            {return true;}
+                        case SDLK_RETURN:
+                            {return selection;}
+                        case SDLK_UP: //User selects "RESUME"
+                        {
+                            selection = true; 
+                            drawPause(renderer, font, selection); //Only call the drawPause() function whenever there is a change to be made to the screen   
+                            break;
+                        }
+                        case SDLK_DOWN: //User selects "QUIT"
+                        {
+                            selection = false; 
+                            drawPause(renderer, font, selection);    
+                            break;
+                        }
+                    }
+               }
+            }
+        }
+    }
 }
 
 #endif
