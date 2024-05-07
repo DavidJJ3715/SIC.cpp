@@ -11,10 +11,20 @@
 #include "../SDL2/include/SDL2/SDL_ttf.h"
 #include "../SDL2/include/SDL2/SDL_image.h"
 
+/********************************
+*       Global Variables        *
+*********************************/
 using intTup = std::tuple<int,int,int>;
-
 const int WIDTH = 800;
 const int HEIGHT = 600;
+bool toggleFPS = true, isWhole;
+
+
+/********************************
+*       Core Functionality      *
+*********************************/
+bool isWholeNumber(double val, double epsilon = 1e-9) 
+    {return std::abs(val - std::round(val)) < epsilon;}
 
 std::tuple<int,int,int> getColor()
 {
@@ -32,11 +42,64 @@ std::tuple<int,int,int> getCompColor(std::tuple<int,int,int> color)
     return std::make_tuple(255-R, 255-G, 255-B);
 }
 
-void drawStartText(SDL_Renderer* renderer, bool& increaseAlpha, double& alpha, double& fadeSpeed, TTF_Font* startFont)
+
+/****************************
+*       Draw Functions      *
+*****************************/
+void drawLives(SDL_Renderer* renderer, double lives)
+{
+    SDL_Texture* halfHeart = IMG_LoadTexture(renderer, "./spritePNGs/Half Heart.png");
+    SDL_Texture* fullHeart = IMG_LoadTexture(renderer, "./spritePNGs/Full Heart.png");
+    SDL_Rect heartRect;
+
+    if(isWholeNumber(lives))
+        {isWhole = true;}
+    else
+        {isWhole = false;}
+
+    if(toggleFPS)
+    {
+        for(int i=0;i<lives;i++)
+        {
+            int x = (WIDTH-(i+1)*55)-90;
+            heartRect = {x, 10, 45, 45};
+            SDL_RenderCopy(renderer, fullHeart, nullptr, &heartRect);
+        }
+    }
+    
+    SDL_DestroyTexture(halfHeart);
+    SDL_DestroyTexture(fullHeart);
+}
+
+void drawFPS(SDL_Renderer* renderer, int fps, intTup color, TTF_Font* font)
+{
+    char fpsString[10];
+    sprintf(fpsString, "FPS: %d", fps);
+
+    SDL_Rect textRect = {WIDTH-85, 14, 70, 35};
+    SDL_Surface* surface = TTF_RenderText_Solid(font, fpsString, {255,255,255,0});
+    SDL_Texture* frames = SDL_CreateTextureFromSurface(renderer, surface);
+
+    SDL_SetRenderDrawColor(renderer,std::get<0>(color),std::get<1>(color),std::get<2>(color),0);
+    SDL_RenderFillRect(renderer, &textRect);
+    SDL_RenderCopy(renderer, frames, nullptr, &textRect);
+}
+
+void drawScore(SDL_Renderer* renderer, int score, int highScore, intTup color, TTF_Font* font)
+{
+    
+}
+
+void drawKilled(SDL_Renderer* renderer, int enemiesKilled, intTup color, TTF_Font* font)
+{
+
+}
+
+void drawStartText(SDL_Renderer* renderer, bool& increaseAlpha, double& alpha, double& fadeSpeed, TTF_Font* font)
 {
     std::tuple<Uint8,Uint8,Uint8> color = getColor();
     SDL_Color textColor = {std::get<0>(color), std::get<1>(color), std::get<2>(color),0};
-    SDL_Surface* surface = TTF_RenderText_Solid(startFont, "Press Space To Start", textColor);
+    SDL_Surface* surface = TTF_RenderText_Solid(font, "Press Space To Start", textColor);
     SDL_Texture* text = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_Rect textRect = {(WIDTH-300)/2, (HEIGHT-75)/2, 300, 75};
 
@@ -81,46 +144,6 @@ void drawGears(SDL_Renderer* renderer, TTF_Font* startFont, SDL_Texture* gear)
         SDL_DestroyTexture(text);
 }
 
-bool startScreen(SDL_Renderer* renderer, TTF_Font* startFont, const int frameDelay)
-{
-    Uint64 frameStart;
-    bool stayAtStartScreen = true, increaseAlpha = true, running = false;
-    int frameTime;
-    double fadeSpeed = 1, alpha = 1;
-    SDL_Texture* gear = IMG_LoadTexture(renderer, "./spritePNGs/Settings Icon.png");
-
-    while(stayAtStartScreen)
-    {
-        frameStart = SDL_GetTicks64();
-        SDL_Event event;
-        while(SDL_PollEvent(&event))
-        {
-            switch(event.type)
-            {
-                case SDL_QUIT: //Quit the game
-                    {stayAtStartScreen = false; break;}
-                case SDL_KEYDOWN:
-                {
-                    if(event.key.keysym.sym == SDLK_SPACE) //Start the game
-                        {stayAtStartScreen = false, running = true; break;}
-                    else if(event.key.keysym.sym == SDLK_s) //Enter the settings menu
-                        {continue;}
-                }
-            }
-        }
-        drawGears(renderer, startFont, gear);
-        drawStartText(renderer, increaseAlpha, alpha, fadeSpeed, startFont); 
-        frameTime = SDL_GetTicks64() - frameStart;
-        if(frameDelay > frameTime)
-            {SDL_Delay(frameDelay - frameTime);}
-        SDL_RenderPresent(renderer);
-    }
-    SDL_SetRenderDrawColor(renderer,0,0,0,0);
-    SDL_RenderClear(renderer);
-    SDL_DestroyTexture(gear);
-    return running;
-}
-
 void drawPause(SDL_Renderer* renderer, TTF_Font* font, bool selection)
 {
     SDL_SetRenderDrawColor(renderer,255,255,255,0); //Draw white background
@@ -161,6 +184,50 @@ void drawPause(SDL_Renderer* renderer, TTF_Font* font, bool selection)
     SDL_DestroyTexture(pauseText); //Destroy every texture to prevent memory leaks
     SDL_DestroyTexture(resumeText);
     SDL_DestroyTexture(quitText);
+}
+
+
+/********************************
+*       Screen Functions        *
+*********************************/
+bool startScreen(SDL_Renderer* renderer, TTF_Font* startFont, const int frameDelay)
+{
+    Uint64 frameStart;
+    bool stayAtStartScreen = true, increaseAlpha = true, running = false;
+    int frameTime;
+    double fadeSpeed = 1, alpha = 1;
+    SDL_Texture* gear = IMG_LoadTexture(renderer, "./spritePNGs/Settings Icon.png");
+
+    while(stayAtStartScreen)
+    {
+        frameStart = SDL_GetTicks64();
+        SDL_Event event;
+        while(SDL_PollEvent(&event))
+        {
+            switch(event.type)
+            {
+                case SDL_QUIT: //Quit the game
+                    {stayAtStartScreen = false; break;}
+                case SDL_KEYDOWN:
+                {
+                    if(event.key.keysym.sym == SDLK_SPACE) //Start the game
+                        {stayAtStartScreen = false, running = true; break;}
+                    else if(event.key.keysym.sym == SDLK_s) //Enter the settings menu
+                        {continue;}
+                }
+            }
+        }
+        drawGears(renderer, startFont, gear);
+        drawStartText(renderer, increaseAlpha, alpha, fadeSpeed, startFont); 
+        frameTime = SDL_GetTicks64() - frameStart;
+        if(frameDelay > frameTime)
+            {SDL_Delay(frameDelay - frameTime);}
+        SDL_RenderPresent(renderer);
+    }
+    SDL_SetRenderDrawColor(renderer,0,0,0,0);
+    SDL_RenderClear(renderer);
+    SDL_DestroyTexture(gear);
+    return running;
 }
 
 bool pauseMenu(SDL_Renderer* renderer, TTF_Font* font)

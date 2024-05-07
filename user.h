@@ -6,7 +6,7 @@ class user
 {
     public:
         user();
-        double left(), right(), top(), bottom();
+        double left(), right(), top(), bottom(), getHealth();
         bool moveLeftRight(), moveUpDown(), isDead();
         void setX(double), setY(double), setLeftRight(), setUpDown(), killUser();
         void setColor(intTup), draw(SDL_Renderer*);
@@ -24,6 +24,7 @@ double user::left()         {return xCoord;}
 double user::top()          {return yCoord;}
 double user::right()        {return xCoord+50;}
 double user::bottom()       {return yCoord+50;}
+double user::getHealth()    {return health;}
 
 bool user::moveLeftRight()  {return userMoveLeftRight;}
 bool user::moveUpDown()     {return userMoveUpDown;}

@@ -52,6 +52,9 @@ int main()
         }
         SDL_SetRenderDrawColor(renderer, std::get<0>(color), std::get<1>(color), std::get<2>(color), 0);
         SDL_RenderClear(renderer);
+        if(toggleFPS) //Only draw the FPS if the user leaves the fps setting on
+            {drawFPS(renderer, fps, color, font);} 
+        drawLives(renderer, player.get()->getHealth()); //Draw the amount of hearts remaining
         player.get()->draw(renderer);
         SDL_RenderPresent(renderer);
         frameTime = SDL_GetTicks64() - frameStart;
