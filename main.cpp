@@ -1,4 +1,5 @@
 #include "func.h"
+#include "user.h"
 
 int main()
 {
@@ -15,6 +16,10 @@ int main()
     TTF_Font* startFont = TTF_OpenFont("DejaVuSans.ttf", 75);
 
     bool running = startScreen(renderer, startFont, frameDelay);
+    intTup color = {0,0,0};
+    std::shared_ptr<user> player(new user());
+    std::optional<SDL_KeyCode> postUpdate;
+
     while(running)
     {
         frameStart = SDL_GetTicks64();
@@ -25,25 +30,42 @@ int main()
             {
                 case SDL_QUIT:
                     {running = false; break;}
-                case SDL_KEYDOWN:
-                {
-                    if(event.key.keysym.sym == SDLK_ESCAPE)
-                        {running = false; break;}
-                    else if(event.key.keysym.sym == SDLK_SPACE)
+                default:
+                    postUpdate = player.get()->update(event);
+                    if(!postUpdate.has_value()) 
+                        {break;}
+                    else if(postUpdate.value() == SDLK_ESCAPE)
                     {
-                        std::tuple color = getColor();
-                        std::tuple compColor = getCompColor(color);
-                        SDL_SetRenderDrawColor(renderer, std::get<0>(color), std::get<1>(color), std::get<2>(color), 0);
-                        SDL_RenderClear(renderer);
+                        running = false; break;
+                        //Pause menu
                     }
-                }
+                    else if(postUpdate.value() == SDLK_SPACE)
+                    {
+                        color = getColor();
+                        player.get()->setColor(getCompColor(color));
+                    }
+                    // {
+                //     if(event.key.keysym.sym == SDLK_ESCAPE)
+                //         {running = false; break;}
+                //     else if(event.key.keysym.sym == SDLK_SPACE)
+                //     {
+                //         std::tuple color = getColor();
+                //         std::tuple compColor = getCompColor(color);
+                //         SDL_SetRenderDrawColor(renderer, std::get<0>(color), std::get<1>(color), std::get<2>(color), 0);
+                //         player.get()->setColor(compColor);
+                //         SDL_RenderClear(renderer);
+                //     }
+                // }
             }
         }
+        SDL_SetRenderDrawColor(renderer, std::get<0>(color), std::get<1>(color), std::get<2>(color), 0);
+        SDL_RenderClear(renderer);
+        player.get()->draw(renderer);
+        SDL_RenderPresent(renderer);
         frameTime = SDL_GetTicks64() - frameStart;
         if(frameDelay > frameTime)
             {SDL_Delay(frameDelay - frameTime);}
         fps = (1000/(SDL_GetTicks64() - frameStart));
-        SDL_RenderPresent(renderer);
     }
 
     SDL_DestroyRenderer(renderer);

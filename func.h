@@ -5,10 +5,11 @@
 #include <string>
 #include <random>
 #include <tuple>
+#include <memory>
+#include <optional>
 #include "../SDL2/include/SDL2/SDL.h"
 #include "../SDL2/include/SDL2/SDL_ttf.h"
 #include "../SDL2/include/SDL2/SDL_image.h"
-#include "user.h"
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
@@ -31,8 +32,8 @@ std::tuple<int,int,int> getCompColor(std::tuple<int,int,int> color)
 
 void drawStartText(SDL_Renderer* renderer, bool& increaseAlpha, double& alpha, double& fadeSpeed, TTF_Font* startFont)
 {
-    std::tuple<int,int,int> color = getColor();
-    SDL_Color textColor = {std::get<0>(color), std::get<1>(color), std::get<2>(color)};
+    std::tuple<Uint8,Uint8,Uint8> color = getColor();
+    SDL_Color textColor = {std::get<0>(color), std::get<1>(color), std::get<2>(color),0};
     SDL_Surface* surface = TTF_RenderText_Solid(startFont, "Press Space To Start", textColor);
     SDL_Texture* text = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_Rect textRect = {(WIDTH-300)/2, (HEIGHT-75)/2, 300, 75};
@@ -64,7 +65,7 @@ void drawGears(SDL_Renderer* renderer, TTF_Font* startFont, SDL_Texture* gear)
         SDL_Rect gearSmall = {105/2,105/2,65,65};
         SDL_Rect total = {0,0,200,200};
         SDL_Rect textRect = {12,100,100,50};
-        SDL_Color textColor = {255,255,255};
+        SDL_Color textColor = {255,255,255,0};
         SDL_Surface* surface = TTF_RenderText_Solid(startFont, "(S)ettings", textColor);
         SDL_Texture* text = SDL_CreateTextureFromSurface(renderer, surface);
 
