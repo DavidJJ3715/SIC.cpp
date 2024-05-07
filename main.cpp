@@ -5,7 +5,7 @@ int main()
 {
     const int chosenFPS = 120, frameDelay = 1000/chosenFPS;
     Uint64 frameStart, beforePause, timePaused;
-    int frameTime, fps;
+    int frameTime, fps, score = 0, highScore = 0, enemiesKilled = 0;
 
     SDL_Init(SDL_INIT_EVERYTHING);
     TTF_Init();
@@ -22,6 +22,7 @@ int main()
     if(!running)
         {player.get()->killUser();}
 
+    std::chrono::_V2::system_clock::time_point startTime = std::chrono::high_resolution_clock::now();
     while(!player.get()->isDead())
     {
         frameStart = SDL_GetTicks64();
@@ -55,12 +56,15 @@ int main()
         if(toggleFPS) //Only draw the FPS if the user leaves the fps setting on
             {drawFPS(renderer, fps, color, font);} 
         drawLives(renderer, player.get()->getHealth()); //Draw the amount of hearts remaining
+        drawScore(renderer, score, highScore, color, font);
+        drawKilled(renderer, enemiesKilled, color, font);
         player.get()->draw(renderer);
         SDL_RenderPresent(renderer);
         frameTime = SDL_GetTicks64() - frameStart;
         if(frameDelay > frameTime)
             {SDL_Delay(frameDelay - frameTime);}
         fps = (1000/(SDL_GetTicks64() - frameStart));
+        score = (std::chrono::duration_cast<std::chrono::milliseconds>(((std::chrono::high_resolution_clock::now()) - startTime)/100)).count();
     }
 
     SDL_DestroyRenderer(renderer);

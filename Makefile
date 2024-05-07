@@ -17,10 +17,6 @@ noKey: $(dependencies)
 noRun: $(dependencies)
 	g++ $(errflags) main.cpp -o run -IC:\Users\david\Downloads\Code\SDL2\include -LC:\Users\david\Downloads\Code\SDL2\lib $(linkedLibraries)
 
-noKeySan: $(dependencies)
-	g++ $(errflags) $(flags) main.cpp -o run -IC:\Users\david\Downloads\Code\SDL2\include -LC:\Users\david\Downloads\Code\SDL2\lib $(linkedLibraries)
-	./run.exe
-
 # boxRun: $(dependencies)
 # 	g++ $(errflags) -static main.cpp -o boxRun $(shareLinkedLibraries)
 # 	powershell Remove-Item C:\Users\david\Desktop\boxRunShare\boxRun.exe

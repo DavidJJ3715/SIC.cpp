@@ -7,6 +7,7 @@
 #include <tuple>
 #include <memory>
 #include <optional>
+#include <chrono>
 #include "../SDL2/include/SDL2/SDL.h"
 #include "../SDL2/include/SDL2/SDL_ttf.h"
 #include "../SDL2/include/SDL2/SDL_image.h"
@@ -48,25 +49,27 @@ std::tuple<int,int,int> getCompColor(std::tuple<int,int,int> color)
 *****************************/
 void drawLives(SDL_Renderer* renderer, double lives)
 {
+    int fpsWidth = 0;
     SDL_Texture* halfHeart = IMG_LoadTexture(renderer, "./spritePNGs/Half Heart.png");
     SDL_Texture* fullHeart = IMG_LoadTexture(renderer, "./spritePNGs/Full Heart.png");
     SDL_Rect heartRect;
+
+    if(toggleFPS) {fpsWidth = 90;}
 
     if(isWholeNumber(lives))
         {isWhole = true;}
     else
         {isWhole = false;}
 
-    if(toggleFPS)
+    for(int i=0;i<lives;i++)
     {
-        for(int i=0;i<lives;i++)
-        {
-            int x = (WIDTH-(i+1)*55)-90;
-            heartRect = {x, 10, 45, 45};
-            SDL_RenderCopy(renderer, fullHeart, nullptr, &heartRect);
-        }
+        int x = (WIDTH-((i+1)*55))-fpsWidth;
+        heartRect = {x, 10, 45, 45};
+        SDL_RenderCopy(renderer, fullHeart, nullptr, &heartRect);
+        if(!isWhole && i+1 >= lives)
+            {SDL_RenderCopy(renderer, halfHeart, nullptr, &heartRect);}
     }
-    
+
     SDL_DestroyTexture(halfHeart);
     SDL_DestroyTexture(fullHeart);
 }
@@ -83,16 +86,49 @@ void drawFPS(SDL_Renderer* renderer, int fps, intTup color, TTF_Font* font)
     SDL_SetRenderDrawColor(renderer,std::get<0>(color),std::get<1>(color),std::get<2>(color),0);
     SDL_RenderFillRect(renderer, &textRect);
     SDL_RenderCopy(renderer, frames, nullptr, &textRect);
+
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(frames);
 }
 
 void drawScore(SDL_Renderer* renderer, int score, int highScore, intTup color, TTF_Font* font)
 {
-    
+    char highScoreString[1000], scoreString[1000];
+    sprintf(highScoreString, "High Score: %d", highScore);
+    sprintf(scoreString, "Score: %d", score);
+
+    SDL_Rect highRect = {5,5,220,35};
+    SDL_Rect scoreRect = {5,35,220,35};
+    SDL_Surface* surface = TTF_RenderText_Solid(font, highScoreString, {255,255,255,0});
+    SDL_Texture* HIGHSCORE = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = TTF_RenderText_Solid(font, scoreString, {255,255,255,0});
+    SDL_Texture* SCORE = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    SDL_SetRenderDrawColor(renderer,std::get<0>(color),std::get<1>(color),std::get<2>(color),0);
+    SDL_RenderFillRect(renderer, &highRect);
+    SDL_RenderFillRect(renderer, &scoreRect);
+    SDL_RenderCopy(renderer, HIGHSCORE, nullptr, &highRect);
+    SDL_RenderCopy(renderer, SCORE, nullptr, &scoreRect);
+
+    SDL_DestroyTexture(HIGHSCORE);
+    SDL_DestroyTexture(SCORE);
 }
 
 void drawKilled(SDL_Renderer* renderer, int enemiesKilled, intTup color, TTF_Font* font)
 {
+    char enemiesString[1000];
+    sprintf(enemiesString, "Enemies: %d", enemiesKilled);
+    SDL_Rect rect = {5,70,220,35};
+    SDL_Surface* surface = TTF_RenderText_Solid(font, enemiesString, {255,255,255,0});
+    SDL_Texture* KILLED = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
 
+    SDL_SetRenderDrawColor(renderer,std::get<0>(color),std::get<1>(color),std::get<2>(color),0);
+    SDL_RenderFillRect(renderer, &rect);
+    SDL_RenderCopy(renderer, KILLED, nullptr, &rect);
+    SDL_DestroyTexture(KILLED);
 }
 
 void drawStartText(SDL_Renderer* renderer, bool& increaseAlpha, double& alpha, double& fadeSpeed, TTF_Font* font)
@@ -100,6 +136,7 @@ void drawStartText(SDL_Renderer* renderer, bool& increaseAlpha, double& alpha, d
     std::tuple<Uint8,Uint8,Uint8> color = getColor();
     SDL_Color textColor = {std::get<0>(color), std::get<1>(color), std::get<2>(color),0};
     SDL_Surface* surface = TTF_RenderText_Solid(font, "Press Space To Start", textColor);
+   
     SDL_Texture* text = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_Rect textRect = {(WIDTH-300)/2, (HEIGHT-75)/2, 300, 75};
 
