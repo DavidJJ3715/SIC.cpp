@@ -8,9 +8,20 @@
 #include <memory>
 #include <optional>
 #include <chrono>
+#include <vector>
 #include "../SDL2/include/SDL2/SDL.h"
 #include "../SDL2/include/SDL2/SDL_ttf.h"
 #include "../SDL2/include/SDL2/SDL_image.h"
+
+//? Type->Type == 1.0x Damage   || Strong->Weak == 2.0x Damage  || Fire->Life == 4.0x Damage
+//? Water->Fire || No weakness  || 100% Movement    || Occasionally stun boss and wipe ads
+//? Fire->Life  || 2.0x Damage  || 115% Movement    || Projectiles can explode on impact
+//? Life->None  || Health Regen || 85% Movement     || 33% Chance not to take damage
+
+//Todo: settings menu, element select screen, boss transition
+//Todo: projectile class, enemy class, boss class
+//Todo: boss controls, experience and level system
+//Todo: draw life character and projectile, draw enemy types
 
 /********************************
 *       Global Variables        *
@@ -120,7 +131,7 @@ void drawKilled(SDL_Renderer* renderer, int enemiesKilled, intTup color, TTF_Fon
 {
     char enemiesString[1000];
     sprintf(enemiesString, "Enemies: %d", enemiesKilled);
-    SDL_Rect rect = {5,70,220,35};
+    SDL_Rect rect = {5,65,220,35};
     SDL_Surface* surface = TTF_RenderText_Solid(font, enemiesString, {255,255,255,0});
     SDL_Texture* KILLED = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
