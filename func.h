@@ -8,6 +8,7 @@
 #include <memory>
 #include <optional>
 #include <chrono>
+#include <map>
 #include <vector>
 #include "../SDL2/include/SDL2/SDL.h"
 #include "../SDL2/include/SDL2/SDL_ttf.h"
@@ -174,22 +175,70 @@ void drawStartText(SDL_Renderer* renderer, bool& increaseAlpha, double& alpha, d
 
 void drawGears(SDL_Renderer* renderer, TTF_Font* startFont, SDL_Texture* gear)
 {
-        SDL_Rect gearLarge = {0,0,105,105};
-        SDL_Rect gearSmall = {105/2,105/2,65,65};
-        SDL_Rect total = {0,0,200,200};
-        SDL_Rect textRect = {12,100,100,50};
-        SDL_Color textColor = {255,255,255,0};
-        SDL_Surface* surface = TTF_RenderText_Solid(startFont, "(S)ettings", textColor);
-        SDL_Texture* text = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_Rect gearLarge = {0,0,105,105};
+    SDL_Rect gearSmall = {105/2,105/2,65,65};
+    SDL_Rect total = {0,0,200,200};
+    SDL_Rect textRect = {12,100,100,50};
+    SDL_Color textColor = {255,255,255,0};
+    SDL_Surface* surface = TTF_RenderText_Solid(startFont, "(S)ettings", textColor);
+    SDL_Texture* text = SDL_CreateTextureFromSurface(renderer, surface);
 
-        SDL_SetRenderDrawColor(renderer,0,0,0,0);
-        SDL_RenderFillRect(renderer, &total);
-        SDL_RenderCopy(renderer, gear, nullptr, &gearLarge);
-        SDL_RenderCopy(renderer, gear, nullptr, &gearSmall);
-        SDL_RenderCopy(renderer, text, nullptr, &textRect);
+    SDL_SetRenderDrawColor(renderer,0,0,0,0);
+    SDL_RenderFillRect(renderer, &total);
+    SDL_RenderCopy(renderer, gear, nullptr, &gearLarge);
+    SDL_RenderCopy(renderer, gear, nullptr, &gearSmall);
+    SDL_RenderCopy(renderer, text, nullptr, &textRect);
 
-        SDL_FreeSurface(surface);
-        SDL_DestroyTexture(text);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(text);
+}
+
+void drawElements(SDL_Renderer* renderer, TTF_Font* font, SDL_Texture* flame, SDL_Texture* bubble, SDL_Texture* heart, int state)
+{
+    SDL_Rect rect, rect2, rect3;
+    SDL_Color textColor = {255,255,255,0};
+
+    SDL_Surface* surface = TTF_RenderText_Solid(font, "Fire", textColor);
+    SDL_Texture* flameText = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = TTF_RenderText_Solid(font, "Water", textColor);
+    SDL_Texture* waterText = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = TTF_RenderText_Solid(font, "Life", textColor);
+    SDL_Texture* lifeText = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    SDL_SetRenderDrawColor(renderer,0,0,0,0);
+    SDL_RenderClear(renderer);   
+    SDL_SetRenderDrawColor(renderer,255,255,255,0);
+    rect = {100,175,100,100}; //Rectangle for white box
+    rect2 = {125,200,50,50}; //Rectangle for image
+    SDL_RenderFillRect(renderer, &rect);
+    SDL_RenderCopy(renderer, flame, nullptr, &rect2);
+    rect = {350,175,100,100}; //Rectangle for white box
+    rect2 = {375,200,50,50}; //Rectangle for image
+    SDL_RenderFillRect(renderer, &rect);
+    SDL_RenderCopy(renderer, bubble, nullptr, &rect2);
+    rect = {600,175,100,100}; //Rectangle for white box
+    rect2 = {625,200,50,50}; //Rectangle for image
+    SDL_RenderFillRect(renderer, &rect);
+    SDL_RenderCopy(renderer, heart, nullptr, &rect2);
+
+    SDL_SetRenderDrawColor(renderer,212,175,55,0);
+    switch(state)
+    {
+        case 0:
+            {rect3 = {75,150,150,150}; break;}
+        case 1:
+            {rect3 = {325,150,150,150}; break;}
+        case 2:
+            {rect3 = {575,150,150,150}; break;}
+    }
+    SDL_RenderDrawRect(renderer, &rect3);
+
+    SDL_DestroyTexture(flameText);
+    SDL_DestroyTexture(waterText);
+    SDL_DestroyTexture(lifeText);
 }
 
 void drawPause(SDL_Renderer* renderer, TTF_Font* font, bool selection)
@@ -238,6 +287,58 @@ void drawPause(SDL_Renderer* renderer, TTF_Font* font, bool selection)
 /********************************
 *       Screen Functions        *
 *********************************/
+std::optional<std::string> elementScreen(SDL_Renderer* renderer, TTF_Font* font, const int frameDelay)
+{
+    std::optional<std::string> retString = std::nullopt;
+    Uint64 frameStart;
+    bool stayAtSelectionScreen = true;
+    int state = 1, frameTime; //state is either left(0), middle(1), right(2)
+    SDL_Texture* flame = IMG_LoadTexture(renderer, "./spritePNGs/flame.png");
+    SDL_Texture* bubble = IMG_LoadTexture(renderer, "./spritePNGs/bubble.png");
+    SDL_Texture* heart = IMG_LoadTexture(renderer, "./spritePNGs/Full Heart.png");
+
+    while(stayAtSelectionScreen)
+    {
+        frameStart = SDL_GetTicks64();
+        SDL_Event event;
+        while(SDL_PollEvent(&event))
+        {
+            switch(event.type)
+            {
+                case SDL_QUIT:
+                    {retString = "quit"; break;}
+                case SDL_KEYDOWN:
+                {
+                    if(event.key.keysym.sym == SDLK_LEFT)
+                        {if(state != 0) {state--;}}
+                    else if(event.key.keysym.sym == SDLK_RIGHT)
+                        {if(state != 2) {state++;}}
+                    else if(event.key.keysym.sym == SDLK_RETURN)
+                    {
+                        stayAtSelectionScreen = false;
+                        if(state == 0) {retString = "fire";}
+                        else if(state == 1) {retString = "water";}
+                        else if(state == 2) {retString = "life";}
+                        break;
+                    }
+                    else if(event.key.keysym.sym == SDLK_ESCAPE)
+                        {stayAtSelectionScreen = false; break;}
+                }
+            }
+        }
+        drawElements(renderer, font, flame, bubble, heart, state);
+        frameTime = SDL_GetTicks64() - frameStart;
+        if(frameDelay > frameTime)
+            {SDL_Delay(frameDelay - frameTime);}
+        SDL_RenderPresent(renderer);
+    }
+
+    SDL_DestroyTexture(flame);
+    SDL_DestroyTexture(bubble);
+    SDL_DestroyTexture(heart);
+    return retString;
+}
+
 bool startScreen(SDL_Renderer* renderer, TTF_Font* startFont, const int frameDelay)
 {
     Uint64 frameStart;
@@ -246,6 +347,8 @@ bool startScreen(SDL_Renderer* renderer, TTF_Font* startFont, const int frameDel
     double fadeSpeed = 1, alpha = 1;
     SDL_Texture* gear = IMG_LoadTexture(renderer, "./spritePNGs/Settings Icon.png");
 
+    SDL_SetRenderDrawColor(renderer,0,0,0,0);
+    SDL_RenderClear(renderer);
     while(stayAtStartScreen)
     {
         frameStart = SDL_GetTicks64();

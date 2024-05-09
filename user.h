@@ -6,20 +6,28 @@
 class user
 {
     public:
-        user();
+        user(std::string);
         double left(), right(), top(), bottom(), getHealth();
         bool moveLeftRight(), moveUpDown(), isDead();
         void setX(double), setY(double), setLeftRight(), setUpDown(), killUser();
         void setColor(intTup), draw(SDL_Renderer*);
         std::optional<SDL_KeyCode> update(const SDL_Event&);
+        std::string element, png;
     
     private:
         double xCoord = (WIDTH-25)/2, yCoord = HEIGHT-75, velocity = 15, health = 3;
         bool userMoveLeftRight = true, userMoveUpDown = false, userIsDead = false, mirror = false;
         intTup color = {255,255,255};
+        std::map<std::string,std::string> pics =
+        {
+            {"fire", "./spritePNGs/flame.png"},
+            {"water", "./spritePNGs/bubble.png"},
+            {"life", "./spritePNGs/Full Heart.png"}
+        };
 };
 
-user::user() {}
+user::user(std::string elem) 
+    {element = elem; png = pics.at(elem);}
 
 double user::left()         {return xCoord;}
 double user::top()          {return yCoord;}

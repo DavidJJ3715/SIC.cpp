@@ -7,6 +7,11 @@ int main()
     const int chosenFPS = 120, frameDelay = 1000/chosenFPS;
     Uint64 frameStart, beforePause, timePaused;
     int frameTime, fps, score = 0, highScore = 0, enemiesKilled = 0;
+    std::string element = "life";
+    bool running = true;
+    std::optional<SDL_KeyCode> postUpdate;
+    std::optional<std::string> elementSelection;
+    intTup color = {0,0,0};
 
     SDL_Init(SDL_INIT_EVERYTHING);
     TTF_Init();
@@ -16,13 +21,23 @@ int main()
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     TTF_Font* font = TTF_OpenFont("DejaVuSans.ttf", 75);
 
-    intTup color = {0,0,0};
-    std::optional<SDL_KeyCode> postUpdate;
-    std::shared_ptr<user> player(new user());
-    bool running = startScreen(renderer, font, frameDelay);
-    if(!running)
-        {player.get()->killUser();}
+    std::shared_ptr<user> player(new user(element));
 
+    while(running)
+    {
+        running = startScreen(renderer, font, frameDelay);
+        if(!running)
+            {player.get()->killUser();}
+
+        elementSelection = elementScreen(renderer, font, frameDelay);
+        if(elementSelection == "quit")
+            {player.get()->killUser();}
+        if(elementSelection)
+        {
+            running = false;
+            element = elementSelection.value();
+        }
+    }
     std::chrono::_V2::system_clock::time_point startTime = std::chrono::high_resolution_clock::now();
     while(!player.get()->isDead())
     {
