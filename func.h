@@ -322,7 +322,11 @@ std::optional<std::string> elementScreen(SDL_Renderer* renderer, TTF_Font* font,
                         break;
                     }
                     else if(event.key.keysym.sym == SDLK_ESCAPE)
-                        {stayAtSelectionScreen = false; break;}
+                    {
+                        stayAtSelectionScreen = false; 
+                        retString = "escape";
+                        break;
+                    }
                 }
             }
         }

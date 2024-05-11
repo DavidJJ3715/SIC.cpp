@@ -37,6 +37,8 @@ int main()
                 elementSelection = elementScreen(renderer, font, frameDelay);
                 if(elementSelection == "quit")
                     {player.get()->killUser();}
+                else if(elementSelection == "escape")
+                    {continue;}
                 if(elementSelection)
                 {
                     element = elementSelection.value();
