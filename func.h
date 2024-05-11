@@ -14,12 +14,12 @@
 #include "../SDL2/include/SDL2/SDL_ttf.h"
 #include "../SDL2/include/SDL2/SDL_image.h"
 
-//? Type->Type == 1.0x Damage   || Strong->Weak == 2.0x Damage  || Fire->Life == 4.0x Damage
+//? Type->Type == 1.0x Damage   || Strong->Weak == 2.0x Damage  || Fire->Life == 3.0x Damage
 //? Water->Fire || No weakness  || 100% Movement    || Occasionally stun boss and wipe ads
-//? Fire->Life  || 2.0x Damage  || 115% Movement    || Projectiles can explode on impact
-//? Life->None  || Health Regen || 85% Movement     || 33% Chance not to take damage
+//? Fire->Life  || 1.5x Damage  || 133% Movement    || Projectiles can explode on impact
+//? Life->None  || Health Regen || 80% Movement     || 42% Chance not to take damage
 
-//Todo: settings menu, element select screen, boss transition
+//Todo: settings menu, element select screen=>finish and add flavor text, boss transition
 //Todo: projectile class, enemy class, boss class
 //Todo: boss controls, experience and level system
 //Todo: draw life character and projectile, draw enemy types
@@ -195,10 +195,10 @@ void drawGears(SDL_Renderer* renderer, TTF_Font* startFont, SDL_Texture* gear)
 
 void drawElements(SDL_Renderer* renderer, TTF_Font* font, SDL_Texture* flame, SDL_Texture* bubble, SDL_Texture* heart, int state)
 {
-    SDL_Rect rect, rect2, rect3;
-    SDL_Color textColor = {255,255,255,0};
+    SDL_Rect rect, rect2, rect3; //rect(white box), rect2(image), rect3(gold border)
+    SDL_Color textColor = {255,255,255,0}; //White color for box
 
-    SDL_Surface* surface = TTF_RenderText_Solid(font, "Fire", textColor);
+    SDL_Surface* surface = TTF_RenderText_Solid(font, "Fire", textColor); //Render the labels for the elements
     SDL_Texture* flameText = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
     surface = TTF_RenderText_Solid(font, "Water", textColor);
@@ -208,7 +208,7 @@ void drawElements(SDL_Renderer* renderer, TTF_Font* font, SDL_Texture* flame, SD
     SDL_Texture* lifeText = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 
-    SDL_SetRenderDrawColor(renderer,0,0,0,0);
+    SDL_SetRenderDrawColor(renderer,0,0,0,0); //Draw the boxes and images in the white box
     SDL_RenderClear(renderer);   
     SDL_SetRenderDrawColor(renderer,255,255,255,0);
     rect = {100,175,100,100}; //Rectangle for white box
@@ -224,7 +224,7 @@ void drawElements(SDL_Renderer* renderer, TTF_Font* font, SDL_Texture* flame, SD
     SDL_RenderFillRect(renderer, &rect);
     SDL_RenderCopy(renderer, heart, nullptr, &rect2);
 
-    SDL_SetRenderDrawColor(renderer,212,175,55,0);
+    SDL_SetRenderDrawColor(renderer,212,175,55,0); //Make gold border based on what "state" the menu is in
     switch(state)
     {
         case 0:
@@ -236,7 +236,7 @@ void drawElements(SDL_Renderer* renderer, TTF_Font* font, SDL_Texture* flame, SD
     }
     SDL_RenderDrawRect(renderer, &rect3);
 
-    SDL_DestroyTexture(flameText);
+    SDL_DestroyTexture(flameText); //Clean up our memory
     SDL_DestroyTexture(waterText);
     SDL_DestroyTexture(lifeText);
 }
@@ -362,9 +362,19 @@ bool startScreen(SDL_Renderer* renderer, TTF_Font* startFont, const int frameDel
                 case SDL_KEYDOWN:
                 {
                     if(event.key.keysym.sym == SDLK_SPACE) //Start the game
-                        {stayAtStartScreen = false, running = true; break;}
+                    {
+                        stayAtStartScreen = false;
+                        running = true; 
+                        break;
+                    }
                     else if(event.key.keysym.sym == SDLK_s) //Enter the settings menu
-                        {continue;}
+                        {running = true; /*settings = true*/;}
+                    else if(event.key.keysym.sym == SDLK_ESCAPE)
+                    {
+                        //Add a "quit game" confirmation screen like in Destiny
+                        stayAtStartScreen = false; 
+                        break;
+                    }
                 }
             }
         }

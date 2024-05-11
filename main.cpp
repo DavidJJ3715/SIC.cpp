@@ -5,10 +5,10 @@
 int main()
 {
     const int chosenFPS = 120, frameDelay = 1000/chosenFPS;
-    Uint64 frameStart, beforePause, timePaused;
-    int frameTime, fps, score = 0, highScore = 0, enemiesKilled = 0;
+    Uint64 frameStart;
+    int frameTime, fps, score = 0, highScore = 0, enemiesKilled = 0, timePaused;
     std::string element = "life";
-    bool running = true;
+    bool running = true, beginning = true;
     std::optional<SDL_KeyCode> postUpdate;
     std::optional<std::string> elementSelection;
     intTup color = {0,0,0};
@@ -22,26 +22,32 @@ int main()
     TTF_Font* font = TTF_OpenFont("DejaVuSans.ttf", 75);
 
     std::shared_ptr<user> player(new user(element));
-
-    while(running)
-    {
-        running = startScreen(renderer, font, frameDelay);
-        if(!running)
-            {player.get()->killUser();}
-
-        elementSelection = elementScreen(renderer, font, frameDelay);
-        if(elementSelection == "quit")
-            {player.get()->killUser();}
-        if(elementSelection)
-        {
-            running = false;
-            element = elementSelection.value();
-        }
-    }
-    std::chrono::_V2::system_clock::time_point startTime = std::chrono::high_resolution_clock::now();
+    std::chrono::_V2::system_clock::time_point startTime, beforePause;
+    
     while(!player.get()->isDead())
     {
         frameStart = SDL_GetTicks64();
+        if(beginning)
+        {
+            running = startScreen(renderer, font, frameDelay);
+            if(!running)
+                {player.get()->killUser();}
+            if(!player.get()->isDead())
+            {
+                elementSelection = elementScreen(renderer, font, frameDelay);
+                if(elementSelection == "quit")
+                    {player.get()->killUser();}
+                if(elementSelection)
+                {
+                    element = elementSelection.value();
+                    player.get()->changeElement(element);
+                }
+            } 
+            startTime = std::chrono::high_resolution_clock::now();
+            timePaused = 0;
+            beginning = false;           
+        }
+
         SDL_Event event;
         while(SDL_PollEvent(&event))
         {
@@ -55,10 +61,10 @@ int main()
                         {break;}
                     else if(postUpdate.value() == SDLK_ESCAPE)
                     {
-                        beforePause = SDL_GetTicks64();
+                        beforePause = std::chrono::high_resolution_clock::now();
                         if(!pauseMenu(renderer, font))
-                            {player.get()->killUser(); break;}
-                        timePaused += SDL_GetTicks64() - beforePause;
+                            {beginning = true; break;}
+                        timePaused += (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - beforePause)/100).count();
                     }
                     else if(postUpdate.value() == SDLK_SPACE)
                     {
@@ -80,7 +86,7 @@ int main()
         if(frameDelay > frameTime)
             {SDL_Delay(frameDelay - frameTime);}
         fps = (1000/(SDL_GetTicks64() - frameStart));
-        score = (std::chrono::duration_cast<std::chrono::milliseconds>(((std::chrono::high_resolution_clock::now()) - startTime)/100)).count();
+        score = (std::chrono::duration_cast<std::chrono::milliseconds>(((std::chrono::high_resolution_clock::now()) - startTime)/100)).count() - timePaused;
     }
 
     SDL_DestroyRenderer(renderer);
