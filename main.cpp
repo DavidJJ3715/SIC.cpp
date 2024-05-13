@@ -1,16 +1,20 @@
 #include "func.h"
 #include "user.h"
 #include "projectile.h"
+#include "enemy.h"
 
 int main()
 {
     const int chosenFPS = 120, frameDelay = 1000/chosenFPS;
     Uint64 frameStart;
     int frameTime, fps, score = 0, highScore = 0, enemiesKilled = 0, timePaused;
+    Uint64 timeSinceLastShot = 0;
     std::string element = "life";
     bool running = true, beginning = true;
     std::optional<SDL_KeyCode> postUpdate;
     std::optional<std::string> elementSelection;
+    std::vector<std::shared_ptr<projectile>> projList;
+    std::vector<std::shared_ptr<enemy>> enemyList;
     intTup color = {0,0,0};
 
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -66,7 +70,7 @@ int main()
                         beforePause = std::chrono::high_resolution_clock::now();
                         if(!pauseMenu(renderer, font))
                             {beginning = true; break;}
-                        timePaused += (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - beforePause)/100).count();
+                        timePaused += (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - beforePause)/200).count();
                     }
                     else if(postUpdate.value() == SDLK_SPACE)
                     {
@@ -83,12 +87,29 @@ int main()
         drawScore(renderer, score, highScore, color, font);
         drawKilled(renderer, enemiesKilled, color, font);
         player.get()->draw(renderer);
+        if(timeSinceLastShot+75 <= SDL_GetTicks64())
+        {
+            double userX = player.get()->left();
+            double userY = player.get()->top();
+            std::shared_ptr<projectile> temp(new projectile(element, userX, userY));
+            projList.emplace_back(temp);
+            timeSinceLastShot = SDL_GetTicks64();
+        }
+        for(auto proj = projList.begin(); proj != projList.end(); ++proj)
+        {
+            proj->get()->update(enemyList);
+            if(!proj->get()->isItAlive())
+                {projList.erase(proj);}
+            else
+                {proj->get()->draw(renderer);}
+        }
+        std::cout << projList.size() << "\n";
         SDL_RenderPresent(renderer);
         frameTime = SDL_GetTicks64() - frameStart;
         if(frameDelay > frameTime)
             {SDL_Delay(frameDelay - frameTime);}
         fps = (1000/(SDL_GetTicks64() - frameStart));
-        score = (std::chrono::duration_cast<std::chrono::milliseconds>(((std::chrono::high_resolution_clock::now()) - startTime)/100)).count() - timePaused;
+        score = (std::chrono::duration_cast<std::chrono::milliseconds>(((std::chrono::high_resolution_clock::now()) - startTime)/200)).count() - timePaused;
     }
 
     SDL_DestroyRenderer(renderer);

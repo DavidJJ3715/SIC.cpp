@@ -1,13 +1,15 @@
 #ifndef _projectile_
 #define _projectile_
 #include "func.h"
+#include "enemy.h"
 
 class projectile
 {
     public:
-        projectile(std::string);
+        projectile(std::string, double, double);
         double left(), right(), top(), bottom();
-        bool isDead(), update();
+        bool isItAlive();
+        void update(std::vector<std::shared_ptr<enemy>>), draw(SDL_Renderer*);
         std::string element, png;
 
     private:
@@ -17,12 +19,46 @@ class projectile
             {"water", "./spritePNGs/raindrop.png"},
             {"life", "./spritePNGs/Full Heart.png"}
         };
-        double xCoord, yCoord, health, velocity;
+        double xCoord, yCoord, velocity=10;
+        bool isAlive = true;
 };
 
-projectile::projectile(std::string input)
-    {element = input; png = pics.at(element);}
+projectile::projectile(std::string input, double x, double y)
+{
+    element = input; 
+    png = pics.at(element);
+    xCoord = x+12;
+    yCoord = y-25;
+}
 
-double projectile::left() {return xCoord;}
+double projectile::left()       {return xCoord;}
+double projectile::right()      {return xCoord+5;}
+double projectile::bottom()     {return yCoord;}
+double projectile::top()        {return yCoord-10;}
+bool projectile::isItAlive()    {return isAlive;}
+
+void projectile::update(std::vector<std::shared_ptr<enemy>> enemyList)
+{
+    if(yCoord<0) 
+        {isAlive = false;}
+    for(auto en : enemyList)
+    {
+        if(en.get()->bottom() >= yCoord)
+            {en.get()->damage(element);}
+    }
+    if(isAlive == true)
+        {yCoord -= velocity;}
+}
+
+void projectile::draw(SDL_Renderer* renderer)
+{
+    SDL_Rect location;
+    SDL_Texture* image = IMG_LoadTexture(renderer, png.data());
+    
+    location = {int(xCoord), int(yCoord), 25, 50};
+
+    SDL_RenderCopy(renderer, image, nullptr, &location);
+    SDL_DestroyTexture(image);
+}
 
 #endif
