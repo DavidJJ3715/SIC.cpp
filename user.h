@@ -9,7 +9,7 @@ class user
         user(std::string);
         double left(), right(), top(), bottom(), getHealth();
         bool moveLeftRight(), moveUpDown(), isDead();
-        void setX(double), setY(double), setLeftRight(), setUpDown(), killUser();
+        void setX(double), setY(double), setLeftRight(), setUpDown(), killUser(), damage(), restart();
         void setColor(intTup), draw(SDL_Renderer*), changeElement(std::string);
         std::optional<SDL_KeyCode> update(const SDL_Event&);
         std::string element, png;
@@ -43,6 +43,7 @@ void user::setY(double y)   {yCoord = y;}
 void user::setLeftRight()   {userMoveLeftRight = !userMoveLeftRight;}
 void user::setUpDown()      {userMoveUpDown = !userMoveUpDown;}
 void user::killUser()       {userIsDead = !userIsDead;}
+void user::restart()        {health = 3;}
 
 void user::setColor(intTup compColor) 
     {color = compColor;}
@@ -55,6 +56,13 @@ void user::changeElement(std::string elem)
         {velocity = 1.33 * velocity;}
     else if(element == "life")
         {velocity = 0.80 * velocity;}
+}
+
+void user::damage()
+{
+    health -= 1;
+    if(health <= 0)
+        {this->killUser();}
 }
 
 void user::draw(SDL_Renderer* renderer)

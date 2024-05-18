@@ -35,6 +35,8 @@ int main()
         {
             enemyList.clear();
             projList.clear();
+            enemiesKilled = 0;
+            player.get()->restart();
             running = startScreen(renderer, font, frameDelay);
             if(!running)
                 {player.get()->killUser();}
@@ -99,8 +101,8 @@ int main()
             enemyList.emplace_back(temp);
             timeSinceLastSpawn = SDL_GetTicks64();
         }
-        updateDrawProjectile(renderer, projList, enemyList);
-        updateDrawEnemy(renderer, enemyList);
+        enemiesKilled += updateDrawProjectile(renderer, projList, enemyList);
+        updateDrawEnemy(renderer, enemyList, player);
         if(toggleFPS) //Only draw the FPS if the user leaves the fps setting on
             {drawFPS(renderer, fps, color, font);} 
         drawLives(renderer, player.get()->getHealth()); //Draw the amount of hearts remaining
@@ -112,7 +114,7 @@ int main()
         if(frameDelay > frameTime)
             {SDL_Delay(frameDelay - frameTime);}
         fps = (1000/(SDL_GetTicks64() - frameStart));
-        score = (std::chrono::duration_cast<std::chrono::milliseconds>(((std::chrono::high_resolution_clock::now()) - startTime)/200)).count() - timePaused;
+        score = (std::chrono::duration_cast<std::chrono::milliseconds>(((std::chrono::high_resolution_clock::now()) - startTime)/200)).count() - timePaused + enemiesKilled;
     }
 
     SDL_DestroyRenderer(renderer);

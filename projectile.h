@@ -9,7 +9,8 @@ class projectile
         projectile(std::string, double, double);
         double left(), right(), top(), bottom();
         bool isItAlive();
-        void update(std::vector<std::shared_ptr<enemy>>&), draw(SDL_Renderer*);
+        int update(std::vector<std::shared_ptr<enemy>>&);
+        void draw(SDL_Renderer*);
         std::string element, png;
 
     private:
@@ -37,8 +38,9 @@ double projectile::bottom()     {return yCoord;}
 double projectile::top()        {return yCoord-10;}
 bool projectile::isItAlive()    {return isAlive;}
 
-void projectile::update(std::vector<std::shared_ptr<enemy>>& enemyList)
+int projectile::update(std::vector<std::shared_ptr<enemy>>& enemyList)
 {
+    int enemiesKilled = 0;
     if(yCoord<0) 
         {isAlive = false;}
     for(auto en = enemyList.begin(); en != enemyList.end(); ++en)
@@ -46,12 +48,17 @@ void projectile::update(std::vector<std::shared_ptr<enemy>>& enemyList)
         if(en->get()->bottom() >= yCoord && en->get()->left() <= xCoord+12.5 && en->get()->right() >= xCoord)
         {
             if(en->get()->damage(element))
-                {en = enemyList.erase(en); --en;}
+            {
+                en = enemyList.erase(en);
+                --en;
+                enemiesKilled+=1;
+            }
             isAlive = false;
         }
     }
     if(isAlive == true)
         {yCoord -= velocity;}
+    return enemiesKilled;
 }
 
 void projectile::draw(SDL_Renderer* renderer)

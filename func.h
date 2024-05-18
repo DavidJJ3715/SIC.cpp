@@ -22,7 +22,6 @@
 //Todo: settings menu, element select screen=>finish and add flavor text, boss transition
 //Todo: projectile class, enemy class, boss class
 //Todo: boss controls, experience and level system
-//Todo: draw life character and projectile, draw enemy types
 
 /********************************
 *       Global Variables        *
@@ -55,27 +54,33 @@ std::tuple<int,int,int> getCompColor(std::tuple<int,int,int> color)
     return std::make_tuple(255-R, 255-G, 255-B);
 }
 
-template<typename eltType1, typename eltType2>
-void updateDrawProjectile(SDL_Renderer* renderer, std::vector<std::shared_ptr<eltType1>>& projList, std::vector<std::shared_ptr<eltType2>>& enemyList)
+template<typename projectileType, typename enemyType>
+int updateDrawProjectile(SDL_Renderer* renderer, std::vector<std::shared_ptr<projectileType>>& projList, std::vector<std::shared_ptr<enemyType>>& enemyList)
 {
+    int enemiesKilled=0;
     for(auto proj = projList.begin(); proj != projList.end(); ++proj)
     {
-        proj->get()->update(enemyList);
+        enemiesKilled += proj->get()->update(enemyList);
         if(!proj->get()->isItAlive())
                 {proj = projList.erase(proj); --proj;}
         else
             {proj->get()->draw(renderer);}
     }
+    return enemiesKilled;
 }
 
-template<typename eltType>
-void updateDrawEnemy(SDL_Renderer* renderer, std::vector<std::shared_ptr<eltType>>& enemyList)
+template<typename enemyType, typename userType>
+void updateDrawEnemy(SDL_Renderer* renderer, std::vector<std::shared_ptr<enemyType>>& enemyList, std::shared_ptr<userType>& player)
 {
     for(auto en = enemyList.begin(); en != enemyList.end(); ++en)
     {
         en->get()->update();
         if(!en->get()->isItAlive())
-            {en = enemyList.erase(en); --en;}
+        {
+            en = enemyList.erase(en); 
+            --en;
+            player.get()->damage();
+        }
         else
             {en->get()->draw(renderer);}
     }
