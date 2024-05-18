@@ -55,6 +55,32 @@ std::tuple<int,int,int> getCompColor(std::tuple<int,int,int> color)
     return std::make_tuple(255-R, 255-G, 255-B);
 }
 
+template<typename eltType1, typename eltType2>
+void updateDrawProjectile(SDL_Renderer* renderer, std::vector<std::shared_ptr<eltType1>>& projList, std::vector<std::shared_ptr<eltType2>>& enemyList)
+{
+    for(auto proj = projList.begin(); proj != projList.end(); ++proj)
+    {
+        proj->get()->update(enemyList);
+        if(!proj->get()->isItAlive())
+                {proj = projList.erase(proj); --proj;}
+        else
+            {proj->get()->draw(renderer);}
+    }
+}
+
+template<typename eltType>
+void updateDrawEnemy(SDL_Renderer* renderer, std::vector<std::shared_ptr<eltType>>& enemyList)
+{
+    for(auto en = enemyList.begin(); en != enemyList.end(); ++en)
+    {
+        en->get()->update();
+        if(!en->get()->isItAlive())
+            {en = enemyList.erase(en); --en;}
+        else
+            {en->get()->draw(renderer);}
+    }
+}
+
 
 /****************************
 *       Draw Functions      *

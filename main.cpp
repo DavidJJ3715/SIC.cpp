@@ -7,8 +7,8 @@ int main()
 {
     const int chosenFPS = 120, frameDelay = 1000/chosenFPS;
     Uint64 frameStart;
-    int frameTime, fps, score = 0, highScore = 0, enemiesKilled = 0, timePaused;
-    Uint64 timeSinceLastShot = 0;
+    int frameTime, fps, score = 0, maxSpawns = 14, highScore = 0, enemiesKilled = 0, timePaused;
+    Uint64 timeSinceLastShot = 0, timeSinceLastSpawn = 0;
     std::string element = "life";
     bool running = true, beginning = true;
     std::optional<SDL_KeyCode> postUpdate;
@@ -33,6 +33,8 @@ int main()
         frameStart = SDL_GetTicks64();
         if(beginning)
         {
+            enemyList.clear();
+            projList.clear();
             running = startScreen(renderer, font, frameDelay);
             if(!running)
                 {player.get()->killUser();}
@@ -81,11 +83,7 @@ int main()
         }
         SDL_SetRenderDrawColor(renderer, std::get<0>(color), std::get<1>(color), std::get<2>(color), 0);
         SDL_RenderClear(renderer);
-        if(toggleFPS) //Only draw the FPS if the user leaves the fps setting on
-            {drawFPS(renderer, fps, color, font);} 
-        drawLives(renderer, player.get()->getHealth()); //Draw the amount of hearts remaining
-        drawScore(renderer, score, highScore, color, font);
-        drawKilled(renderer, enemiesKilled, color, font);
+        
         player.get()->draw(renderer);
         if(timeSinceLastShot+75 <= SDL_GetTicks64())
         {
@@ -95,15 +93,20 @@ int main()
             projList.emplace_back(temp);
             timeSinceLastShot = SDL_GetTicks64();
         }
-        for(auto proj = projList.begin(); proj != projList.end(); ++proj)
+        if((timeSinceLastSpawn+250 <= SDL_GetTicks64()) && int(enemyList.size()+1) <= maxSpawns)
         {
-            proj->get()->update(enemyList);
-            if(!proj->get()->isItAlive())
-                {projList.erase(proj);}
-            else
-                {proj->get()->draw(renderer);}
+            std::shared_ptr<enemy> temp(new enemy(enemyList));
+            enemyList.emplace_back(temp);
+            timeSinceLastSpawn = SDL_GetTicks64();
         }
-        std::cout << projList.size() << "\n";
+        updateDrawProjectile(renderer, projList, enemyList);
+        updateDrawEnemy(renderer, enemyList);
+        if(toggleFPS) //Only draw the FPS if the user leaves the fps setting on
+            {drawFPS(renderer, fps, color, font);} 
+        drawLives(renderer, player.get()->getHealth()); //Draw the amount of hearts remaining
+        drawScore(renderer, score, highScore, color, font);
+        drawKilled(renderer, enemiesKilled, color, font);
+        
         SDL_RenderPresent(renderer);
         frameTime = SDL_GetTicks64() - frameStart;
         if(frameDelay > frameTime)
