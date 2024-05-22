@@ -74,40 +74,31 @@ int main()
                         beforePause = std::chrono::high_resolution_clock::now();
                         if(!pauseMenu(renderer, font))
                             {beginning = true; break;}
-                        timePaused += (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - beforePause)/200).count();
+                        timePaused += (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - beforePause)/200).count(); //Calculate how much time was spent paused so it can be subtracted from the score value
                     }
                     else if(postUpdate.value() == SDLK_SPACE)
                     {
-                        color = getColor();
-                        player.get()->setColor(getCompColor(color));
+                        color = getColor(); //Grab a color tuble
+                        player.get()->setColor(getCompColor(color)); //Set the user to a complementary color
                     }
             }
         }
-        SDL_SetRenderDrawColor(renderer, std::get<0>(color), std::get<1>(color), std::get<2>(color), 0);
-        SDL_RenderClear(renderer);
+        SDL_SetRenderDrawColor(renderer, std::get<0>(color), std::get<1>(color), std::get<2>(color), 0); //Set the background color
+        SDL_RenderClear(renderer); //Clear the screen to draw new stuff over it
         
-        player.get()->draw(renderer);
-        if(timeSinceLastShot+75 <= SDL_GetTicks64())
-        {
-            double userX = player.get()->left();
-            double userY = player.get()->top();
-            std::shared_ptr<projectile> temp(new projectile(element, userX, userY));
-            projList.emplace_back(temp);
-            timeSinceLastShot = SDL_GetTicks64();
-        }
-        if((timeSinceLastSpawn+250 <= SDL_GetTicks64()) && int(enemyList.size()+1) <= maxSpawns)
-        {
-            std::shared_ptr<enemy> temp(new enemy(enemyList));
-            enemyList.emplace_back(temp);
-            timeSinceLastSpawn = SDL_GetTicks64();
-        }
-        enemiesKilled += updateDrawProjectile(renderer, projList, enemyList);
-        updateDrawEnemy(renderer, enemyList, player);
+        player.get()->draw(renderer); //Draw the user to the screen
+        Uint64 tempTicks = SDL_GetTicks64(); //Get a temp value to synchronize multiple comparisons
+        if(timeSinceLastShot+75 <= tempTicks)
+            {timeSinceLastShot = spawnProjectile(projList,player.get()->left(),player.get()->top(),element);} //Spawn a projectile if the timer condition is met
+        if((timeSinceLastSpawn+250 <= tempTicks) && int(enemyList.size()+1) <= maxSpawns)
+            {timeSinceLastSpawn = spawnEnemy(enemyList);} //Spawn an enemy if the timer condition is met
+        enemiesKilled += updateDrawProjectile(renderer, projList, enemyList); //Update projectiles, draw to screen, and increment counter if enemy is killed
+        updateDrawEnemy(renderer, enemyList, player); //Update the enemies and draw to screen
         if(toggleFPS) //Only draw the FPS if the user leaves the fps setting on
-            {drawFPS(renderer, fps, color, font);} 
+            {drawFPS(renderer, fps, color, font);} //Draw the FPS to the screen
         drawLives(renderer, player.get()->getHealth()); //Draw the amount of hearts remaining
-        drawScore(renderer, score, highScore, color, font);
-        drawKilled(renderer, enemiesKilled, color, font);
+        drawScore(renderer, score, highScore, color, font); //Draw the score to the screen
+        drawKilled(renderer, enemiesKilled, color, font); //Draw the amount of enemies killed
         
         SDL_RenderPresent(renderer);
         frameTime = SDL_GetTicks64() - frameStart;

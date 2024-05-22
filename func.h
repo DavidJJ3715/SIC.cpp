@@ -86,6 +86,22 @@ void updateDrawEnemy(SDL_Renderer* renderer, std::vector<std::shared_ptr<enemyTy
     }
 }
 
+template<typename projectileType>
+Uint64 spawnProjectile(std::vector<std::shared_ptr<projectileType>>& projList, double userX, double userY, std::string element)
+{
+    std::shared_ptr<projectileType> temp(new projectileType(element,userX,userY));
+    projList.emplace_back(temp);
+    return SDL_GetTicks64();
+}
+
+template<typename enemyType>
+Uint64 spawnEnemy(std::vector<std::shared_ptr<enemyType>>& enemyList)
+{
+    std::shared_ptr<enemyType> temp(new enemyType(enemyList));
+    enemyList.emplace_back(temp);
+    return SDL_GetTicks64();
+}
+
 
 /****************************
 *       Draw Functions      *
