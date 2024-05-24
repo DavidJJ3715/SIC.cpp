@@ -10,6 +10,9 @@
 #include <chrono>
 #include <map>
 #include <vector>
+#include <fstream>
+#include <thread>
+#include <mutex>
 #include "../SDL2/include/SDL2/SDL.h"
 #include "../SDL2/include/SDL2/SDL_ttf.h"
 #include "../SDL2/include/SDL2/SDL_image.h"
@@ -30,7 +33,45 @@ using intTup = std::tuple<int,int,int>;
 const int WIDTH = 800;
 const int HEIGHT = 600;
 bool toggleFPS = true, isWhole;
+std::mutex highScoreLock;
 
+/********************************
+*       Save Functions          *
+*********************************/
+void saveHighScore(int highScore)
+{
+    std::ofstream scoreFile("save.txt");
+    scoreFile << highScore;
+}
+
+int loadHighScore()
+{
+    int highScore = 0;
+    std::ifstream scoreFile("save.txt");
+    scoreFile >> highScore;
+    return highScore;
+}
+
+void checkAgainstHighScore(int score, int& highScore)
+{
+    if(score > highScore)
+    {
+        highScore = score;
+        saveHighScore(score);
+    }
+}
+
+void periodicSave(int& highScore, bool& playerAlive)
+{
+    while(playerAlive)
+    {
+        {
+            std::lock_guard<std::mutex> lock(highScoreLock);
+            saveHighScore(highScore);
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+    }
+}
 
 /********************************
 *       Core Functionality      *

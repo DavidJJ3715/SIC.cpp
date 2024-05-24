@@ -7,7 +7,7 @@ int main()
 {
     const int chosenFPS = 120, frameDelay = 1000/chosenFPS;
     Uint64 frameStart;
-    int frameTime, fps, score = 0, maxSpawns = 14, highScore = 0, enemiesKilled = 0, timePaused;
+    int frameTime, fps, score = 0, maxSpawns = 14, enemiesKilled = 0, timePaused, highScore = loadHighScore();
     Uint64 timeSinceLastShot = 0, timeSinceLastSpawn = 0;
     std::string element = "life";
     bool running = true, beginning = true;
@@ -27,6 +27,8 @@ int main()
 
     std::shared_ptr<user> player(new user(element));
     std::chrono::_V2::system_clock::time_point startTime, beforePause;
+
+    std::thread saveThread(periodicSave, std::ref(highScore), std::ref(running));
     
     while(!player.get()->isDead())
     {
@@ -106,7 +108,14 @@ int main()
             {SDL_Delay(frameDelay - frameTime);}
         fps = (1000/(SDL_GetTicks64() - frameStart));
         score = (std::chrono::duration_cast<std::chrono::milliseconds>(((std::chrono::high_resolution_clock::now()) - startTime)/200)).count() - timePaused + enemiesKilled;
+        { //Create a new temp scope for the scope bound lock_guard to be effective
+            std::lock_guard<std::mutex> lock(highScoreLock);
+            checkAgainstHighScore(score, highScore);
+        }
     }
+    if(saveThread.joinable())
+        {saveThread.join();}
+    saveHighScore(highScore);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
