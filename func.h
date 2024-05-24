@@ -30,8 +30,7 @@
 *       Global Variables        *
 *********************************/
 using intTup = std::tuple<int,int,int>;
-const int WIDTH = 800;
-const int HEIGHT = 600;
+const int WIDTH = 800, HEIGHT = 600, chosenFPS = 120, frameDelay = 1000/chosenFPS;
 bool toggleFPS = true, isWhole;
 std::mutex highScoreLock;
 
@@ -69,7 +68,7 @@ void periodicSave(int& highScore, bool& playerAlive)
             std::lock_guard<std::mutex> lock(highScoreLock);
             saveHighScore(highScore);
         }
-        std::this_thread::sleep_for(std::chrono::seconds(2));
+        std::this_thread::sleep_for(std::chrono::seconds(3));
     }
 }
 
@@ -172,6 +171,25 @@ void drawLives(SDL_Renderer* renderer, double lives)
 
     SDL_DestroyTexture(halfHeart);
     SDL_DestroyTexture(fullHeart);
+}
+
+void drawSaveScreen(SDL_Renderer* renderer, TTF_Font* font)
+{
+    char message[10];
+    sprintf(message, "Saving Please Wait");
+
+    SDL_Rect textRect = {(WIDTH/2)-150,(HEIGHT/2)-75,300,150};
+    SDL_Surface* surface = TTF_RenderText_Solid(font, message, {255,255,255,0});
+    SDL_Texture* writing = SDL_CreateTextureFromSurface(renderer, surface);
+
+    SDL_SetRenderDrawColor(renderer,0,0,0,0);
+    SDL_RenderClear(renderer);
+    SDL_RenderFillRect(renderer, &textRect);
+    SDL_RenderCopy(renderer, writing, nullptr, &textRect);
+
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(writing);
+    SDL_RenderPresent(renderer);
 }
 
 void drawFPS(SDL_Renderer* renderer, int fps, intTup color, TTF_Font* font)

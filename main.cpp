@@ -5,12 +5,10 @@
 
 int main()
 {
-    const int chosenFPS = 120, frameDelay = 1000/chosenFPS;
-    Uint64 frameStart;
     int frameTime, fps, score = 0, maxSpawns = 14, enemiesKilled = 0, timePaused, highScore = loadHighScore();
-    Uint64 timeSinceLastShot = 0, timeSinceLastSpawn = 0;
+    Uint64 frameStart, timeSinceLastShot = 0, timeSinceLastSpawn = 0;
     std::string element = "life";
-    bool running = true, beginning = true;
+    bool beginning = true, running = true;
     std::optional<SDL_KeyCode> postUpdate;
     std::optional<std::string> elementSelection;
     std::vector<std::shared_ptr<projectile>> projList;
@@ -21,14 +19,13 @@ int main()
     TTF_Init();
     IMG_Init(IMG_INIT_PNG);
 
-    SDL_Window* window = SDL_CreateWindow("<Insert Name Here>", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
+    SDL_Window* window = SDL_CreateWindow("SIC.cpp", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     TTF_Font* font = TTF_OpenFont("DejaVuSans.ttf", 75);
 
-    std::shared_ptr<user> player(new user(element));
-    std::chrono::_V2::system_clock::time_point startTime, beforePause;
-
-    std::thread saveThread(periodicSave, std::ref(highScore), std::ref(running));
+    std::shared_ptr<user> player(new user(element)); //Player character being controlled
+    std::chrono::_V2::system_clock::time_point startTime, beforePause; //Time point starting when the game is beginning
+    std::thread saveThread(periodicSave, std::ref(highScore), std::ref(running)); //Spawn a second process that saves the game on an interval, keeping the main game loop unaffected from any slowdowns when saving the game
     
     while(!player.get()->isDead())
     {
@@ -66,7 +63,7 @@ int main()
             switch(event.type)
             {
                 case SDL_QUIT:
-                    {player.get()->killUser(); break;}
+                    {player.get()->killUser(); running = false; break;}
                 default:
                     postUpdate = player.get()->update(event);
                     if(!postUpdate.has_value()) 
@@ -113,6 +110,7 @@ int main()
             checkAgainstHighScore(score, highScore);
         }
     }
+    drawSaveScreen(renderer, font);
     if(saveThread.joinable())
         {saveThread.join();}
     saveHighScore(highScore);
