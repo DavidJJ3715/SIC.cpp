@@ -26,6 +26,7 @@
 //Todo: projectile class, enemy class, boss class
 //Todo: boss controls, experience and level system
 
+
 /********************************
 *       Global Variables        *
 *********************************/
@@ -33,6 +34,7 @@ using intTup = std::tuple<int,int,int>;
 const int WIDTH = 800, HEIGHT = 600, chosenFPS = 120, frameDelay = 1000/chosenFPS;
 bool toggleFPS = true, isWhole;
 std::mutex highScoreLock;
+
 
 /********************************
 *       Save Functions          *
@@ -72,13 +74,14 @@ void periodicSave(int& highScore, bool& playerAlive)
     }
 }
 
+
 /********************************
 *       Core Functionality      *
 *********************************/
 bool isWholeNumber(double val, double epsilon = 1e-9) 
     {return std::abs(val - std::round(val)) < epsilon;}
 
-std::tuple<int,int,int> getColor()
+intTup getColor()
 {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -86,7 +89,7 @@ std::tuple<int,int,int> getColor()
     return std::make_tuple(dist(gen), dist(gen), dist(gen));
 }
 
-std::tuple<int,int,int> getCompColor(std::tuple<int,int,int> color)
+intTup getCompColor(intTup color)
 {
     int R = std::get<0>(color);
     int G = std::get<1>(color);
@@ -126,21 +129,12 @@ void updateDrawEnemy(SDL_Renderer* renderer, std::vector<std::shared_ptr<enemyTy
     }
 }
 
-template<typename projectileType>
-Uint64 spawnProjectile(std::vector<std::shared_ptr<projectileType>>& projList, double userX, double userY, std::string element)
+template<typename entityType, typename... Args>
+Uint64 spawnEntity(std::vector<std::shared_ptr<entityType>>& entityList, Args&&... args)
 {
-    std::shared_ptr<projectileType> temp(new projectileType(element,userX,userY));
-    projList.emplace_back(temp);
+    entityList.emplace_back(std::make_shared<entityType>(std::forward<Args>(args)...));
     return SDL_GetTicks64();
-}
-
-template<typename enemyType>
-Uint64 spawnEnemy(std::vector<std::shared_ptr<enemyType>>& enemyList)
-{
-    std::shared_ptr<enemyType> temp(new enemyType(enemyList));
-    enemyList.emplace_back(temp);
-    return SDL_GetTicks64();
-}
+} //Generic spawn function. Function takes in the list of entities and any additional arguments that are needed for constructing the object
 
 
 /****************************

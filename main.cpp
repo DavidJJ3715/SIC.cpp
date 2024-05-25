@@ -88,9 +88,9 @@ int main()
         player.get()->draw(renderer); //Draw the user to the screen
         Uint64 tempTicks = SDL_GetTicks64(); //Get a temp value to synchronize multiple comparisons
         if(timeSinceLastShot+75 <= tempTicks)
-            {timeSinceLastShot = spawnProjectile(projList,player.get()->left(),player.get()->top(),element);} //Spawn a projectile if the timer condition is met
+            {timeSinceLastShot = spawnEntity(projList,element,player.get()->left(),player.get()->top());} //Spawn a projectile if the timer condition is met
         if((timeSinceLastSpawn+250 <= tempTicks) && int(enemyList.size()+1) <= maxSpawns)
-            {timeSinceLastSpawn = spawnEnemy(enemyList);} //Spawn an enemy if the timer condition is met
+            {timeSinceLastSpawn = spawnEntity(enemyList,enemyList);} //Spawn an enemy if the timer condition is met
         enemiesKilled += updateDrawProjectile(renderer, projList, enemyList); //Update projectiles, draw to screen, and increment counter if enemy is killed
         updateDrawEnemy(renderer, enemyList, player); //Update the enemies and draw to screen
         if(toggleFPS) //Only draw the FPS if the user leaves the fps setting on
