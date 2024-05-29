@@ -94,10 +94,10 @@ int main()
         enemiesKilled += updateDrawProjectile(renderer, projList, enemyList); //Update projectiles, draw to screen, and increment counter if enemy is killed
         updateDrawEnemy(renderer, enemyList, player); //Update the enemies and draw to screen
         if(toggleFPS) //Only draw the FPS if the user leaves the fps setting on
-            {drawFPS(renderer, fps, color, font);} //Draw the FPS to the screen
+            {drawFPS(renderer, fps, color, font, projList, enemyList);} //Draw the FPS to the screen
+        drawScore(renderer, score, highScore, enemiesKilled, color, font, projList, enemyList); //Draw the score to the screen
+        // drawKilled(renderer, enemiesKilled, color, font, projList, enemyList); //Draw the amount of enemies killed
         drawLives(renderer, player.get()->getHealth()); //Draw the amount of hearts remaining
-        drawScore(renderer, score, highScore, color, font); //Draw the score to the screen
-        drawKilled(renderer, enemiesKilled, color, font); //Draw the amount of enemies killed
         
         SDL_RenderPresent(renderer);
         frameTime = SDL_GetTicks64() - frameStart;

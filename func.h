@@ -18,13 +18,22 @@
 #include "../SDL2/include/SDL2/SDL_image.h"
 
 //? Type->Type == 1.0x Damage   || Strong->Weak == 2.0x Damage  || Fire->Life == 3.0x Damage
-//? Water->Fire || No weakness  || 100% Movement    || Occasionally stun boss and wipe ads
-//? Fire->Life  || 1.5x Damage  || 133% Movement    || Projectiles can explode on impact
+//? Water->Fire || No weakness  || 100% Movement    || 33% stun boss && 9% wipe ads
+//? Fire->Life  || 1.5x Damage  || 133% Movement    || 11% Projectiles explode on impact
 //? Life->None  || Health Regen || 80% Movement     || 42% Chance not to take damage
 
 //Todo: settings menu, element select screen=>finish and add flavor text, boss transition
-//Todo: projectile class, enemy class, boss class
-//Todo: boss controls, experience and level system
+//Todo: boss class, boss controls
+//Todo: experience and level system
+//Todo: difficulty change as game goes on (in another thread?)
+//Todo: draw projectiles and enemies behind the counters and fps
+
+//* Settings ideas:
+//*     -FPS enabler/disabler
+//*     -Monotone colorway
+//*     -FPS selecter?
+//*     -Reset highscore
+//*     -Profile selection? (highscores link to specific user's profile)
 
 
 /********************************
@@ -186,7 +195,28 @@ void drawSaveScreen(SDL_Renderer* renderer, TTF_Font* font)
     SDL_RenderPresent(renderer);
 }
 
-void drawFPS(SDL_Renderer* renderer, int fps, intTup color, TTF_Font* font)
+template <typename entityType>
+void drawObjectBehindTextLeft(SDL_Renderer* renderer, std::vector<std::shared_ptr<entityType>> entityList, int x, int y)
+{
+    for(auto it = entityList.begin(); it != entityList.end(); ++it)
+    {
+        if(it->get()->left() < x && it->get()->top() < y)
+            {it->get()->draw(renderer);}
+    }
+}
+
+template <typename entityType>
+void drawObjectBehindTextRight(SDL_Renderer* renderer, std::vector<std::shared_ptr<entityType>> entityList, int x, int y)
+{
+    for(auto it = entityList.begin(); it != entityList.end(); ++it)
+    {
+        if(it->get()->right() > x && it->get()->top() < y)
+            {it->get()->draw(renderer);}
+    }
+}
+
+template <typename projType, typename enemyType>
+void drawFPS(SDL_Renderer* renderer, int fps, intTup color, TTF_Font* font, std::vector<std::shared_ptr<projType>> projList, std::vector<std::shared_ptr<enemyType>> enemyList)
 {
     char fpsString[10];
     sprintf(fpsString, "FPS: %d", fps);
@@ -197,51 +227,67 @@ void drawFPS(SDL_Renderer* renderer, int fps, intTup color, TTF_Font* font)
 
     SDL_SetRenderDrawColor(renderer,std::get<0>(color),std::get<1>(color),std::get<2>(color),0);
     SDL_RenderFillRect(renderer, &textRect);
+    drawObjectBehindTextRight(renderer, projList, WIDTH-100, 50);
+    drawObjectBehindTextRight(renderer, enemyList, WIDTH-100, 50);
     SDL_RenderCopy(renderer, frames, nullptr, &textRect);
 
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(frames);
 }
 
-void drawScore(SDL_Renderer* renderer, int score, int highScore, intTup color, TTF_Font* font)
+template <typename projType, typename enemyType>
+void drawScore(SDL_Renderer* renderer, int score, int highScore, int enemiesKilled, intTup color, TTF_Font* font, std::vector<std::shared_ptr<projType>> projList, std::vector<std::shared_ptr<enemyType>> enemyList)
 {
-    char highScoreString[1000], scoreString[1000];
+    char highScoreString[1000], scoreString[1000], enemiesString[1000];
     sprintf(highScoreString, "High Score: %d", highScore);
     sprintf(scoreString, "Score: %d", score);
+    sprintf(enemiesString, "Enemies: %d", enemiesKilled);
 
     SDL_Rect highRect = {5,5,220,35};
     SDL_Rect scoreRect = {5,35,220,35};
+    SDL_Rect killedRect = {5,65,220,35};
     SDL_Surface* surface = TTF_RenderText_Solid(font, highScoreString, {255,255,255,0});
     SDL_Texture* HIGHSCORE = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
     surface = TTF_RenderText_Solid(font, scoreString, {255,255,255,0});
     SDL_Texture* SCORE = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
-
-    SDL_SetRenderDrawColor(renderer,std::get<0>(color),std::get<1>(color),std::get<2>(color),0);
-    SDL_RenderFillRect(renderer, &highRect);
-    SDL_RenderFillRect(renderer, &scoreRect);
-    SDL_RenderCopy(renderer, HIGHSCORE, nullptr, &highRect);
-    SDL_RenderCopy(renderer, SCORE, nullptr, &scoreRect);
-
-    SDL_DestroyTexture(HIGHSCORE);
-    SDL_DestroyTexture(SCORE);
-}
-
-void drawKilled(SDL_Renderer* renderer, int enemiesKilled, intTup color, TTF_Font* font)
-{
-    char enemiesString[1000];
-    sprintf(enemiesString, "Enemies: %d", enemiesKilled);
-    SDL_Rect rect = {5,65,220,35};
-    SDL_Surface* surface = TTF_RenderText_Solid(font, enemiesString, {255,255,255,0});
+    surface = TTF_RenderText_Solid(font, enemiesString, {255,255,255,0});
     SDL_Texture* KILLED = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 
     SDL_SetRenderDrawColor(renderer,std::get<0>(color),std::get<1>(color),std::get<2>(color),0);
-    SDL_RenderFillRect(renderer, &rect);
-    SDL_RenderCopy(renderer, KILLED, nullptr, &rect);
+    SDL_RenderFillRect(renderer, &highRect);
+    SDL_RenderFillRect(renderer, &scoreRect);
+    SDL_RenderFillRect(renderer, &killedRect);
+    drawObjectBehindTextLeft(renderer, projList, 220, 105);
+    drawObjectBehindTextLeft(renderer, enemyList, 220, 105);
+    SDL_RenderCopy(renderer, HIGHSCORE, nullptr, &highRect);
+    SDL_RenderCopy(renderer, SCORE, nullptr, &scoreRect);
+    SDL_RenderCopy(renderer, KILLED, nullptr, &killedRect);
+
+    SDL_DestroyTexture(HIGHSCORE);
+    SDL_DestroyTexture(SCORE);
     SDL_DestroyTexture(KILLED);
 }
+
+// template <typename projType, typename enemyType>
+// void drawKilled(SDL_Renderer* renderer, int enemiesKilled, intTup color, TTF_Font* font, std::vector<std::shared_ptr<projType>> projList, std::vector<std::shared_ptr<enemyType>> enemyList)
+// {
+//     char enemiesString[1000];
+//     sprintf(enemiesString, "Enemies: %d", enemiesKilled);
+//     SDL_Rect rect = {};
+//     SDL_Surface* surface = TTF_RenderText_Solid(font, enemiesString, {255,255,255,0});
+//     SDL_Texture* KILLED = SDL_CreateTextureFromSurface(renderer, surface);
+//     SDL_FreeSurface(surface);
+
+//     SDL_SetRenderDrawColor(renderer,std::get<0>(color),std::get<1>(color),std::get<2>(color),0);
+//     SDL_RenderFillRect(renderer, &rect);
+//     drawObjectBehindTextLeft(renderer, projList, 220, 105);
+//     drawObjectBehindTextLeft(renderer, enemyList, 220, 105);
+//     SDL_RenderCopy(renderer, KILLED, nullptr, &rect);
+//     SDL_DestroyTexture(KILLED);
+// }
 
 void drawStartText(SDL_Renderer* renderer, bool& increaseAlpha, double& alpha, double& fadeSpeed, TTF_Font* font)
 {
