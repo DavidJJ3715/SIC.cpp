@@ -8,7 +8,7 @@ int main()
     int frameTime, fps, score = 0, maxSpawns = 14, enemiesKilled = 0, timePaused, highScore = loadHighScore();
     Uint64 frameStart, timeSinceLastShot = 0, timeSinceLastSpawn = 0;
     std::string element = "life";
-    bool beginning = true, running = true;
+    bool beginning = true, running = true, gameOver = false;
     std::optional<SDL_KeyCode> postUpdate;
     std::optional<std::string> elementSelection;
     std::vector<std::shared_ptr<projectile>> projList;
@@ -71,7 +71,7 @@ int main()
                     else if(postUpdate.value() == SDLK_ESCAPE)
                     {
                         beforePause = std::chrono::high_resolution_clock::now();
-                        if(!pauseMenu(renderer, font))
+                        if(!selectionMenu(renderer, font, drawPause))
                             {beginning = true; break;}
                         timePaused += (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - beforePause)/200).count(); //Calculate how much time was spent paused so it can be subtracted from the score value
                     }
@@ -92,11 +92,10 @@ int main()
         if((timeSinceLastSpawn+250 <= tempTicks) && int(enemyList.size()+1) <= maxSpawns)
             {timeSinceLastSpawn = spawnEntity(enemyList,enemyList);} //Spawn an enemy if the timer condition is met
         enemiesKilled += updateDrawProjectile(renderer, projList, enemyList); //Update projectiles, draw to screen, and increment counter if enemy is killed
-        updateDrawEnemy(renderer, enemyList, player); //Update the enemies and draw to screen
+        gameOver = updateDrawEnemy(renderer, enemyList, player); //Update the enemies and draw to screen
         if(toggleFPS) //Only draw the FPS if the user leaves the fps setting on
             {drawFPS(renderer, fps, color, font, projList, enemyList);} //Draw the FPS to the screen
         drawScore(renderer, score, highScore, enemiesKilled, color, font, projList, enemyList); //Draw the score to the screen
-        // drawKilled(renderer, enemiesKilled, color, font, projList, enemyList); //Draw the amount of enemies killed
         drawLives(renderer, player.get()->getHealth()); //Draw the amount of hearts remaining
         
         SDL_RenderPresent(renderer);
@@ -108,6 +107,16 @@ int main()
         { //Create a new temp scope for the scope bound lock_guard to be effective
             std::lock_guard<std::mutex> lock(highScoreLock);
             checkAgainstHighScore(score, highScore);
+        }
+        if(gameOver)
+        {
+            if(!selectionMenu(renderer, font, drawGameOver))
+                {running = false;}
+            else
+            {
+                beginning = true;
+                player.get()->revive();
+            }
         }
     }
     drawSaveScreen(renderer, font);

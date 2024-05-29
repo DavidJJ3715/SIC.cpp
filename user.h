@@ -9,7 +9,7 @@ class user
         user(std::string);
         double left(), right(), top(), bottom(), getHealth();
         bool moveLeftRight(), moveUpDown(), isDead();
-        void setX(double), setY(double), setLeftRight(), setUpDown(), killUser(), damage(), restart();
+        void setX(double), setY(double), setLeftRight(), setUpDown(), killUser(), damage(), restart(), revive();
         void setColor(intTup), draw(SDL_Renderer*), changeElement(std::string);
         std::optional<SDL_KeyCode> update(const SDL_Event&);
         std::string element, png;
@@ -42,11 +42,18 @@ void user::setX(double x)   {xCoord = x;}
 void user::setY(double y)   {yCoord = y;}
 void user::setLeftRight()   {userMoveLeftRight = !userMoveLeftRight;}
 void user::setUpDown()      {userMoveUpDown = !userMoveUpDown;}
-void user::killUser()       {userIsDead = !userIsDead;}
-void user::restart()        {health = 3;}
+void user::killUser()       {userIsDead = true;}
+void user::revive()         {userIsDead = false;}
 
 void user::setColor(intTup compColor) 
     {color = compColor;}
+
+void user::restart()
+{
+    health = 3;
+    xCoord = (WIDTH-25)/2;
+    yCoord = HEIGHT-75;
+}
 
 void user::changeElement(std::string elem)
 {

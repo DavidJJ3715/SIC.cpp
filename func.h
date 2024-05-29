@@ -12,6 +12,7 @@
 #include <vector>
 #include <fstream>
 #include <thread>
+#include <functional>
 #include <mutex>
 #include "../SDL2/include/SDL2/SDL.h"
 #include "../SDL2/include/SDL2/SDL_ttf.h"
@@ -122,8 +123,9 @@ int updateDrawProjectile(SDL_Renderer* renderer, std::vector<std::shared_ptr<pro
 }
 
 template<typename enemyType, typename userType>
-void updateDrawEnemy(SDL_Renderer* renderer, std::vector<std::shared_ptr<enemyType>>& enemyList, std::shared_ptr<userType>& player)
+bool updateDrawEnemy(SDL_Renderer* renderer, std::vector<std::shared_ptr<enemyType>>& enemyList, std::shared_ptr<userType>& player)
 {
+    bool gameOver = false;
     for(auto en = enemyList.begin(); en != enemyList.end(); ++en)
     {
         en->get()->update();
@@ -132,10 +134,13 @@ void updateDrawEnemy(SDL_Renderer* renderer, std::vector<std::shared_ptr<enemyTy
             en = enemyList.erase(en); 
             --en;
             player.get()->damage();
+            if(player.get()->isDead())
+                {gameOver = true;}
         }
         else
             {en->get()->draw(renderer);}
     }
+    return gameOver;
 }
 
 template<typename entityType, typename... Args>
@@ -270,24 +275,6 @@ void drawScore(SDL_Renderer* renderer, int score, int highScore, int enemiesKill
     SDL_DestroyTexture(SCORE);
     SDL_DestroyTexture(KILLED);
 }
-
-// template <typename projType, typename enemyType>
-// void drawKilled(SDL_Renderer* renderer, int enemiesKilled, intTup color, TTF_Font* font, std::vector<std::shared_ptr<projType>> projList, std::vector<std::shared_ptr<enemyType>> enemyList)
-// {
-//     char enemiesString[1000];
-//     sprintf(enemiesString, "Enemies: %d", enemiesKilled);
-//     SDL_Rect rect = {};
-//     SDL_Surface* surface = TTF_RenderText_Solid(font, enemiesString, {255,255,255,0});
-//     SDL_Texture* KILLED = SDL_CreateTextureFromSurface(renderer, surface);
-//     SDL_FreeSurface(surface);
-
-//     SDL_SetRenderDrawColor(renderer,std::get<0>(color),std::get<1>(color),std::get<2>(color),0);
-//     SDL_RenderFillRect(renderer, &rect);
-//     drawObjectBehindTextLeft(renderer, projList, 220, 105);
-//     drawObjectBehindTextLeft(renderer, enemyList, 220, 105);
-//     SDL_RenderCopy(renderer, KILLED, nullptr, &rect);
-//     SDL_DestroyTexture(KILLED);
-// }
 
 void drawStartText(SDL_Renderer* renderer, bool& increaseAlpha, double& alpha, double& fadeSpeed, TTF_Font* font)
 {
@@ -429,6 +416,14 @@ void drawPause(SDL_Renderer* renderer, TTF_Font* font, bool selection)
     SDL_DestroyTexture(quitText);
 }
 
+void drawGameOver(SDL_Renderer* renderer, TTF_Font* font, bool selection)
+{
+    SDL_SetRenderDrawColor(renderer,0,0,0,0);
+    SDL_RenderClear(renderer);
+
+    SDL_RenderPresent(renderer);
+}
+
 
 /********************************
 *       Screen Functions        *
@@ -541,11 +536,11 @@ bool startScreen(SDL_Renderer* renderer, TTF_Font* startFont, const int frameDel
     return running;
 }
 
-bool pauseMenu(SDL_Renderer* renderer, TTF_Font* font)
-{
+bool selectionMenu(SDL_Renderer* renderer, TTF_Font* font, std::function<void(SDL_Renderer*,TTF_Font*,bool)>func)
+{ //Generic two prompt selection menu that takes in a draw function as a parameter
     bool selection = true; //True == "resume" || False == "quit"
-    drawPause(renderer, font, selection); //Separate function used to draw the pause menu to keep this function cleaner
-    while(true) //Loop until the user resumes or quits the game
+    func(renderer, font, selection);
+    while(true)
     {
         SDL_Event event;
         while(SDL_PollEvent(&event)) //Typical event handler loop
@@ -565,13 +560,13 @@ bool pauseMenu(SDL_Renderer* renderer, TTF_Font* font)
                         case SDLK_UP: //User selects "RESUME"
                         {
                             selection = true; 
-                            drawPause(renderer, font, selection); //Only call the drawPause() function whenever there is a change to be made to the screen   
+                            func(renderer, font, selection); //Only call the draw function whenever there is a change to be made to the screen   
                             break;
                         }
                         case SDLK_DOWN: //User selects "QUIT"
                         {
                             selection = false; 
-                            drawPause(renderer, font, selection);    
+                            func(renderer, font, selection);    
                             break;
                         }
                     }
@@ -579,6 +574,12 @@ bool pauseMenu(SDL_Renderer* renderer, TTF_Font* font)
             }
         }
     }
+    return selection;
+}
+
+void settingsScreen(SDL_Renderer* renderer, TTF_Font* font)
+{
+
 }
 
 #endif

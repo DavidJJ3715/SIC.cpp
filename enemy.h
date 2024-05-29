@@ -98,7 +98,7 @@ void enemy::draw(SDL_Renderer* renderer)
 
 void enemy::update()
 {
-    if(yCoord >= HEIGHT)
+    if(yCoord >= HEIGHT-35)
         {isAlive = false;}
     else if(isAlive)
         {yCoord += velocity;}
