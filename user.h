@@ -10,14 +10,13 @@ class user
         double left(), right(), top(), bottom(), getHealth();
         bool moveLeftRight(), moveUpDown(), isDead();
         void setX(double), setY(double), setLeftRight(), setUpDown(), killUser(), damage(), restart(), revive();
-        void setColor(intTup), draw(SDL_Renderer*), changeElement(std::string);
+        void draw(SDL_Renderer*), changeElement(std::string);
         std::optional<SDL_KeyCode> update(const SDL_Event&);
         std::string element, png;
     
     private:
         double xCoord = (WIDTH-25)/2, yCoord = HEIGHT-75, velocity = 15, health = 3;
         bool userMoveLeftRight = true, userMoveUpDown = false, userIsDead = false, mirror = false;
-        intTup color = {255,255,255};
         std::map<std::string,std::string> pics =
         {
             {"fire", "./spritePNGs/flame.png"},
@@ -44,9 +43,6 @@ void user::setLeftRight()   {userMoveLeftRight = !userMoveLeftRight;}
 void user::setUpDown()      {userMoveUpDown = !userMoveUpDown;}
 void user::killUser()       {userIsDead = true;}
 void user::revive()         {userIsDead = false;}
-
-void user::setColor(intTup compColor) 
-    {color = compColor;}
 
 void user::restart()
 {
@@ -76,7 +72,7 @@ void user::draw(SDL_Renderer* renderer)
 {
     SDL_Rect imageLocation;
 
-    SDL_SetRenderDrawColor(renderer, std::get<0>(color), std::get<1>(color), std::get<2>(color), 0);
+    SDL_SetRenderDrawColor(renderer,255,255,255,0);
     SDL_Rect rect = {int(xCoord),int(yCoord),50,50};
     SDL_RenderFillRect(renderer, &rect);
 

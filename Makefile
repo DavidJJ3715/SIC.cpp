@@ -2,7 +2,7 @@ noflags =
 flags = -g -fsanitize=leak
 errflags = -Wall -Wextra
 linkedLibraries = -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -lmingw32
-dependencies = Makefile main.cpp func.h user.h projectile.h enemy.h
+dependencies = Makefile main.cpp func.h user.h projectile.h enemy.h star.h
 shareLinkedLibraries = SDL2_image.dll SDL2_ttf.dll SDL2.dll
 
 main: $(dependencies)

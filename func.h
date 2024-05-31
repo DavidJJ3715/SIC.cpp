@@ -154,6 +154,12 @@ Uint64 spawnEntity(std::vector<std::shared_ptr<entityType>>& entityList, Args&&.
 /****************************
 *       Draw Functions      *
 *****************************/
+template<typename starLLtype>
+void drawStars(SDL_Renderer* renderer, starLLtype starList)
+{
+
+}
+
 void drawLives(SDL_Renderer* renderer, double lives)
 {
     int fpsWidth = 0;
@@ -208,6 +214,7 @@ void drawObjectBehindTextLeft(SDL_Renderer* renderer, std::vector<std::shared_pt
         if(it->get()->left() < x && it->get()->top() < y)
             {it->get()->draw(renderer);}
     }
+    //draw stars here
 }
 
 template <typename entityType>
@@ -218,6 +225,7 @@ void drawObjectBehindTextRight(SDL_Renderer* renderer, std::vector<std::shared_p
         if(it->get()->right() > x && it->get()->top() < y)
             {it->get()->draw(renderer);}
     }
+    //draw stars here
 }
 
 template <typename projType, typename enemyType>

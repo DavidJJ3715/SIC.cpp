@@ -2,6 +2,7 @@
 #include "user.h"
 #include "projectile.h"
 #include "enemy.h"
+#include "star.h"
 
 int main()
 {
@@ -13,6 +14,7 @@ int main()
     std::optional<std::string> elementSelection;
     std::vector<std::shared_ptr<projectile>> projList;
     std::vector<std::shared_ptr<enemy>> enemyList;
+    starLinkedList starList;
     intTup color = {0,0,0};
 
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -75,15 +77,11 @@ int main()
                             {beginning = true; break;}
                         timePaused += (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - beforePause)/200).count(); //Calculate how much time was spent paused so it can be subtracted from the score value
                     }
-                    else if(postUpdate.value() == SDLK_SPACE)
-                    {
-                        color = getColor(); //Grab a color tuble
-                        player.get()->setColor(getCompColor(color)); //Set the user to a complementary color
-                    }
             }
         }
-        SDL_SetRenderDrawColor(renderer, std::get<0>(color), std::get<1>(color), std::get<2>(color), 0); //Set the background color
+        SDL_SetRenderDrawColor(renderer,0,0,0,0);
         SDL_RenderClear(renderer); //Clear the screen to draw new stuff over it
+        drawStars(renderer, starList);
         
         player.get()->draw(renderer); //Draw the user to the screen
         Uint64 tempTicks = SDL_GetTicks64(); //Get a temp value to synchronize multiple comparisons
