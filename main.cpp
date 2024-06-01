@@ -81,7 +81,7 @@ int main()
         }
         SDL_SetRenderDrawColor(renderer,0,0,0,0);
         SDL_RenderClear(renderer); //Clear the screen to draw new stuff over it
-        drawStars(renderer, starList);
+        starList.drawStarUpdateList(renderer);
         
         player.get()->draw(renderer); //Draw the user to the screen
         Uint64 tempTicks = SDL_GetTicks64(); //Get a temp value to synchronize multiple comparisons

@@ -154,12 +154,6 @@ Uint64 spawnEntity(std::vector<std::shared_ptr<entityType>>& entityList, Args&&.
 /****************************
 *       Draw Functions      *
 *****************************/
-template<typename starLLtype>
-void drawStars(SDL_Renderer* renderer, starLLtype starList)
-{
-
-}
-
 void drawLives(SDL_Renderer* renderer, double lives)
 {
     int fpsWidth = 0;
