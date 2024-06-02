@@ -19,15 +19,14 @@
 #include "../SDL2/include/SDL2/SDL_image.h"
 
 //? Type->Type == 1.0x Damage   || Strong->Weak == 2.0x Damage  || Fire->Life == 3.0x Damage
-//? Water->Fire || No weakness  || 100% Movement    || 33% stun boss && 9% wipe ads
-//? Fire->Life  || 1.5x Damage  || 133% Movement    || 11% Projectiles explode on impact
+//? Water->Fire || No weakness  || 100% Movement    || 33% stun boss && 9% wipe ads during boss fight && 1% wipe screen
+//? Fire->Life  || 1.5x Damage  || 133% Movement    || 7% Projectiles explode on impact
 //? Life->None  || Health Regen || 80% Movement     || 42% Chance not to take damage
 
 //Todo: settings menu, element select screen=>finish and add flavor text, boss transition
 //Todo: boss class, boss controls
 //Todo: experience and level system
 //Todo: difficulty change as game goes on (in another thread?)
-//Todo: draw projectiles and enemies behind the counters and fps
 
 //* Settings ideas:
 //*     -FPS enabler/disabler
@@ -123,19 +122,30 @@ int updateDrawProjectile(SDL_Renderer* renderer, std::vector<std::shared_ptr<pro
 }
 
 template<typename enemyType, typename userType>
-bool updateDrawEnemy(SDL_Renderer* renderer, std::vector<std::shared_ptr<enemyType>>& enemyList, std::shared_ptr<userType>& player)
+bool updateDrawEnemy(SDL_Renderer* renderer, std::vector<std::shared_ptr<enemyType>>& enemyList, std::shared_ptr<userType>& player, std::string element)
 {
-    bool gameOver = false;
+    bool gameOver = false, ignoreDamage = false;
     for(auto en = enemyList.begin(); en != enemyList.end(); ++en)
     {
         en->get()->update();
         if(!en->get()->isItAlive())
         {
-            en = enemyList.erase(en); 
+            en = enemyList.erase(en);
             --en;
-            player.get()->damage();
-            if(player.get()->isDead())
-                {gameOver = true;}
+            if(element == "life")
+            {
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::uniform_int_distribution<int> dist(1, 100);
+                if(dist(gen) > 42)
+                    {ignoreDamage = true;}      
+            } 
+            if(!ignoreDamage)
+            {
+                player.get()->damage();
+                if(player.get()->isDead())
+                    {gameOver = true;}
+            }
         }
         else
             {en->get()->draw(renderer);}

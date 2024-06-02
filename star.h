@@ -33,9 +33,9 @@ void star::draw(SDL_Renderer*renderer)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> whatAmIDoingWithMyLife(1,60);
+    std::uniform_int_distribution<int> twinkleChanger(1,60);
     if(twinkle == -1)
-        {twinkle = whatAmIDoingWithMyLife(gen);}
+        {twinkle = twinkleChanger(gen);}
     
     int modifier = 1;
     switch(twinkle)
@@ -72,9 +72,12 @@ void star::update(SDL_Renderer* renderer)
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<int> chooseSprite(1,5);
+    std::uniform_int_distribution<int> xDirection(0,WIDTH);
     if(yCoord > HEIGHT)
     {
+        SDL_DestroyTexture(image);
         image = IMG_LoadTexture(renderer, png.at(chooseSprite(gen)).data());
+        xCoord = xDirection(gen);
         yCoord = -5;
     }
     else
@@ -91,20 +94,21 @@ class starLinkedList
     public:
         starLinkedList();
         void draw(SDL_Renderer*);
-        std::shared_ptr<star> operator[](int) const;
 
     private:
         std::shared_ptr<star> head = nullptr;
         std::shared_ptr<star> tail = nullptr;
         void orderedInsert(std::shared_ptr<star>);
+    
+    friend std::ostream& operator<<(std::ostream&, const starLinkedList&);
 };
 
 starLinkedList::starLinkedList()
 {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> xDirection(0,800);
-    std::uniform_int_distribution<int> yDirection(0,600);
+    std::uniform_int_distribution<int> xDirection(0,WIDTH);
+    std::uniform_int_distribution<int> yDirection(0,HEIGHT);
     for(int i=0; i<43; ++i) //Insert every star into the linked list
         {this->orderedInsert(std::make_shared<star>(xDirection(gen), yDirection(gen)));}
 }
@@ -176,12 +180,11 @@ void starLinkedList::draw(SDL_Renderer* renderer)
     }
 }
 
-std::shared_ptr<star> starLinkedList::operator[](int index) const
+std::ostream& operator<<(std::ostream& os, const starLinkedList& starList)
 {
-    std::shared_ptr<star> it = head;
-    for(int i=0; i<index; ++i)
-        {it = it->next;}
-    return it;
+    for(auto it = starList.head; it != nullptr; it = it->next)
+        {os << it->yCoord << ", ";}
+    return os;
 }
 
 #endif

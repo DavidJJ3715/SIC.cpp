@@ -55,35 +55,22 @@ bool enemy::isItAlive() {return isAlive;}
 
 bool enemy::damage(std::string projElem)
 {
-    bool ignoreDamage = false;
-
-    if(element == "life")
+    if(projElem == "fire")
     {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<int> dist(0, 99);
-        if(dist(gen) < 42)
-            {ignoreDamage = true;}      
+        if(element == "life")
+            {health -= 3.0*damageVal;}
+        else 
+            {health -= 1.5*damageVal;}
     }
-    if(!ignoreDamage)
+    else if(projElem == "water")
     {
-        if(projElem == "fire")
-        {
-            if(element == "life")
-                {health -= 3.0*damageVal;}
-            else 
-                {health -= 1.5*damageVal;}
-        }
-        else if(projElem == "water")
-        {
-            if(element == "fire")
-                {health -= 2.0*damageVal;}
-            else
-                {health -= damageVal;}
-        }
+        if(element == "fire")
+            {health -= 2.0*damageVal;}
         else
             {health -= damageVal;}
     }
+    else if(projElem == "life")
+        {health -= damageVal;}
     if(health <= 0)
         {return true;}
     return false;

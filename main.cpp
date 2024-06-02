@@ -27,7 +27,9 @@ int main()
 
     std::shared_ptr<user> player(new user(element)); //Player character being controlled
     std::chrono::_V2::system_clock::time_point startTime, beforePause; //Time point starting when the game is beginning
+
     std::thread saveThread(periodicSave, std::ref(highScore), std::ref(running)); //Spawn a second process that saves the game on an interval, keeping the main game loop unaffected from any slowdowns when saving the game
+    // std::thread progressionThread(progression, std::ref(score), std::ref(enemiesKilled), std::ref(running));
     
     while(!player.get()->isDead())
     {
@@ -90,7 +92,7 @@ int main()
         if((timeSinceLastSpawn+250 <= tempTicks) && int(enemyList.size()+1) <= maxSpawns)
             {timeSinceLastSpawn = spawnEntity(enemyList,enemyList);} //Spawn an enemy if the timer condition is met
         enemiesKilled += updateDrawProjectile(renderer, projList, enemyList); //Update projectiles, draw to screen, and increment counter if enemy is killed
-        gameOver = updateDrawEnemy(renderer, enemyList, player); //Update the enemies and draw to screen
+        gameOver = updateDrawEnemy(renderer, enemyList, player, element); //Update the enemies and draw to screen
         if(toggleFPS) //Only draw the FPS if the user leaves the fps setting on
             {drawFPS(renderer, fps, color, font, projList, enemyList);} //Draw the FPS to the screen
         drawScore(renderer, score, highScore, enemiesKilled, color, font, projList, enemyList); //Draw the score to the screen

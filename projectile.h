@@ -40,6 +40,9 @@ bool projectile::isItAlive()    {return isAlive;}
 
 int projectile::update(std::vector<std::shared_ptr<enemy>>& enemyList)
 {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> explosionChance(1,100);
     int enemiesKilled = 0;
     if(yCoord<0) 
         {isAlive = false;}
@@ -47,6 +50,10 @@ int projectile::update(std::vector<std::shared_ptr<enemy>>& enemyList)
     {
         if(en->get()->bottom() >= yCoord && en->get()->left() <= xCoord+12.5 && en->get()->right() >= xCoord)
         {
+            if(element == "fire" && explosionChance(gen) <= 7)
+            {
+
+            }
             if(en->get()->damage(element))
             {
                 en = enemyList.erase(en);
