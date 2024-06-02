@@ -4,7 +4,7 @@
 #include "projectile.h"
 
 class user
-{
+{ //The player object that the user is controlling
     public:
         user(std::string);
         double left(), right(), top(), bottom(), getHealth();
@@ -45,14 +45,14 @@ void user::killUser()       {userIsDead = true;}
 void user::revive()         {userIsDead = false;}
 
 void user::restart()
-{
+{ //Reset the user to beginning of game stats
     health = 3;
     xCoord = (WIDTH-25)/2;
     yCoord = HEIGHT-75;
 }
 
 void user::changeElement(std::string elem)
-{
+{ //Change the element of the user when the game is restarted
     element = elem;
     png = pics.at(elem);
     if(element == "fire")
@@ -62,14 +62,14 @@ void user::changeElement(std::string elem)
 }
 
 void user::damage()
-{
+{ //A damage event is triggered, lose health
     health -= 1;
     if(health <= 0)
         {this->killUser();}
 }
 
 void user::draw(SDL_Renderer* renderer)
-{
+{ //Draw the user to the screen using a square and the emblem associated with the chosen element
     SDL_Rect imageLocation;
 
     SDL_SetRenderDrawColor(renderer,255,255,255,0);
@@ -86,7 +86,7 @@ void user::draw(SDL_Renderer* renderer)
 }
 
 std::optional<SDL_KeyCode> user::update(const SDL_Event &event)
-{
+{ //Read the keys pressed and return the keypressed or make a change to the user's stats
     if(event.type == SDL_KEYDOWN)
     {
         switch(event.key.keysym.sym)
@@ -109,7 +109,7 @@ std::optional<SDL_KeyCode> user::update(const SDL_Event &event)
             }
         }
     }
-    return std::nullopt;
+    return std::nullopt; //Not escape or space, so return an optional null
 }
 
 #endif

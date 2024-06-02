@@ -3,7 +3,7 @@
 #include "func.h"
 
 class enemy
-{
+{ //An enemy is an object that the player is meant to kill to progress in the game
     public:
         enemy(std::vector<std::shared_ptr<enemy>>);
         double top(), bottom(), left(), right();
@@ -26,69 +26,62 @@ class enemy
 };
 
 enemy::enemy(std::vector<std::shared_ptr<enemy>> enemyList) 
-{
+{ //Initialize the enemy and put it into the vector<enemy> enemyList
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<int> dist(0, 2);
     std::uniform_int_distribution<int> locationDist(0,14);
 
-    element = elementList[dist(gen)];
-    color = elemColor.at(element);
+    element = elementList[dist(gen)]; //Give a random element to the enemy
+    color = elemColor.at(element); //Color aligns with element index
 
-    double tempX = xList[locationDist(gen)];
+    double tempX = xList[locationDist(gen)]; //Determine the spawn location based on random distribution
     for(auto en = enemyList.begin(); en != enemyList.end(); ++en)
     {
-        if(tempX == en->get()->left() && en->get()->top() <= 67)
+        if(tempX == en->get()->left() && en->get()->top() <= 67) //Make sure enemies are not stacked on top of each other
         {
-            tempX = xList[locationDist(gen)]; 
+            tempX = xList[locationDist(gen)]; //The chosen location is stacked, so choose a new spawn location
             en = enemyList.begin();
         }
     }
     xCoord = tempX;
 }
 
-double enemy::top()     {return yCoord;}
-double enemy::bottom()  {return yCoord+33;}
-double enemy::left()    {return xCoord;}
-double enemy::right()   {return xCoord+33;}
-bool enemy::isItAlive() {return isAlive;}
+double enemy::top()             {return yCoord;}
+double enemy::bottom()          {return yCoord+33;}
+double enemy::left()            {return xCoord;}
+double enemy::right()           {return xCoord+33;}
+bool enemy::isItAlive()         {return isAlive;}
 
-bool enemy::damage(std::string projElem)
+bool enemy::damage(std::string projElem) //Determine how much damage to take depending on projectile's element
 {
-    if(projElem == "fire")
+    if(projElem == "fire") //Fire base damage is 1.5*damageVal. Double damage to life enemies
     {
-        if(element == "life")
-            {health -= 3.0*damageVal;}
-        else 
-            {health -= 1.5*damageVal;}
+        if(element == "life")   {health -= 3.0*damageVal;}
+        else                    {health -= 1.5*damageVal;}
     }
-    else if(projElem == "water")
+    else if(projElem == "water") //Water base damage is 1.0*damageVal. Double damage to fire enemies
     {
-        if(element == "fire")
-            {health -= 2.0*damageVal;}
-        else
-            {health -= damageVal;}
+        if(element == "fire")   {health -= 2.0*damageVal;}
+        else                    {health -= damageVal;}
     }
-    else if(projElem == "life")
-        {health -= damageVal;}
-    if(health <= 0)
-        {return true;}
-    return false;
+    else if(projElem == "life") {health -= damageVal;} //No damage boosts
+
+    if(health <= 0)             {return true;} //If the enemy is dead, return true
+    else                        {return false;} //Enemy is not dead
 }
 
-void enemy::draw(SDL_Renderer* renderer)
+void enemy::draw(SDL_Renderer* renderer) //Draw the enemy based on enemy's position coordinates
 {
     SDL_Rect location = {int(xCoord), int(yCoord), 35, 35};
     SDL_SetRenderDrawColor(renderer, std::get<0>(color), std::get<1>(color), std::get<2>(color), 0);
     SDL_RenderFillRect(renderer, &location);
 }
 
-void enemy::update()
+void enemy::update() //Determine where the enemy is and either kill or move the enemy
 {
-    if(yCoord >= HEIGHT-35)
-        {isAlive = false;}
-    else if(isAlive)
-        {yCoord += velocity;}
+    if(yCoord >= HEIGHT-35)     {isAlive = false;}
+    else if(isAlive)            {yCoord += velocity;}
 }
 
 #endif
