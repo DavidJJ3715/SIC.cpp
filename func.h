@@ -155,10 +155,10 @@ bool updateDrawEnemy(SDL_Renderer* renderer, std::vector<std::shared_ptr<enemyTy
 
 template<typename entityType, typename... Args>
 Uint64 spawnEntity(std::vector<std::shared_ptr<entityType>>& entityList, Args&&... args)
-{
+{ //Generic spawn function. Function takes in the list of entities and any additional arguments that are needed for constructing the object
     entityList.emplace_back(std::make_shared<entityType>(std::forward<Args>(args)...));
     return SDL_GetTicks64();
-} //Generic spawn function. Function takes in the list of entities and any additional arguments that are needed for constructing the object
+} 
 
 
 /****************************
